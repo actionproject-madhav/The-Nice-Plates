@@ -185,3 +185,174 @@ export function CoachDiagram() {
     </Figure>
   );
 }
+
+/* ── The hero score ────────────────────────────────────────────────────────
+   One orchestrated moment: a take sweeps in as a waveform, then a phrase of
+   notation lands on the stave note by note while the waveform settles back to
+   a ghost behind it. That is the whole product in four seconds, shown rather
+   than claimed. The staff and bar lines never move — they are the paper.
+
+   Geometry: 640×150, five lines at 11-unit spacing centred on y=77, six bars.
+   Step 0 is the bottom line and each step is half a staff space.             */
+
+const H_LINES = [55, 66, 77, 88, 99];
+const H_BARW = 640 / 6;
+const yOf = (step: number) => 99 - step * 5.5;
+
+type Melody = { bar: number; at: number; step: number };
+
+/** A rising phrase that settles. Beamed runs are marked by BEAMS below. */
+const PHRASE: Melody[] = [
+  { bar: 0, at: 32, step: 2 },
+  { bar: 0, at: 76, step: 4 },
+  { bar: 1, at: 20, step: 5 },
+  { bar: 1, at: 53, step: 7 },
+  { bar: 1, at: 86, step: 8 },
+  { bar: 2, at: 30, step: 7 },
+  { bar: 2, at: 74, step: 5 },
+  { bar: 3, at: 20, step: 6 },
+  { bar: 3, at: 53, step: 8 },
+  { bar: 3, at: 86, step: 9 },
+  { bar: 4, at: 30, step: 7 },
+  { bar: 4, at: 74, step: 5 },
+  { bar: 5, at: 46, step: 4 },
+];
+const BEAMS: number[][] = [
+  [2, 3, 4],
+  [7, 8, 9],
+];
+const WHOLE = PHRASE.length - 1;
+
+const STEM = 24;
+const HERO_WAVE = 240;
+const NOTE_DELAY = 70;
+const NOTE_START = 950;
+
+function heroX(n: Melody) {
+  return n.bar * H_BARW + n.at;
+}
+
+function delay(i: number) {
+  return { "--d": `${NOTE_START + i * NOTE_DELAY}ms` } as React.CSSProperties;
+}
+
+export function HeroScore() {
+  const xs = PHRASE.map(heroX);
+  const ys = PHRASE.map((n) => yOf(n.step));
+  const beamed = new Set(BEAMS.flat());
+
+  return (
+    <svg
+      className="notation hero-score"
+      viewBox="0 0 640 150"
+      role="img"
+      aria-label="A recorded take drawn as a waveform, resolving into a written phrase of six bars."
+    >
+      <g className="hero-wave">
+        {Array.from({ length: HERO_WAVE }, (_, i) => {
+          const t = i / (HERO_WAVE - 1);
+          const envelope = Math.sin(Math.PI * t) ** 0.5;
+          const detail =
+            0.28 +
+            0.72 *
+              Math.abs(Math.sin(i * 1.63) * Math.cos(i * 0.47) + 0.3 * Math.sin(i * 0.21));
+          const h = 1.5 + envelope * detail * 32;
+          return (
+            <rect
+              key={i}
+              x={2 + t * 636 - 0.45}
+              y={77 - h}
+              width="0.9"
+              height={h * 2}
+              rx="0.45"
+              style={{ "--d": `${i * 3}ms` } as React.CSSProperties}
+            />
+          );
+        })}
+      </g>
+
+      <g className="n-staff">
+        {H_LINES.map((y) => (
+          <line key={y} x1="0" y1={y} x2="640" y2={y} />
+        ))}
+      </g>
+      <g className="n-bar">
+        {[1, 2, 3, 4, 5].map((b) => (
+          <line key={b} x1={b * H_BARW} y1="55" x2={b * H_BARW} y2="99" />
+        ))}
+        <line x1="635" y1="55" x2="635" y2="99" />
+        <line className="n-bar-thick" x1="638.6" y1="55" x2="638.6" y2="99" />
+      </g>
+
+      {PHRASE.map((n, i) => {
+        const x = xs[i];
+        const y = ys[i];
+        const down = n.step >= 5;
+        return (
+          <g className="hero-note" key={i} style={delay(i)}>
+            {i === WHOLE ? (
+              <ellipse className="n-head-open" cx={x} cy={y} rx="5.4" ry="3.9" transform={`rotate(-14 ${x} ${y})`} />
+            ) : (
+              <>
+                <ellipse className="n-head" cx={x} cy={y} rx="5.2" ry="3.8" transform={`rotate(-18 ${x} ${y})`} />
+                {!beamed.has(i) && (
+                  <line
+                    className="n-stem-h"
+                    x1={x + (down ? -3.9 : 3.9)}
+                    y1={y + (down ? 1 : -1)}
+                    x2={x + (down ? -3.9 : 3.9)}
+                    y2={y + (down ? STEM : -STEM)}
+                  />
+                )}
+              </>
+            )}
+          </g>
+        );
+      })}
+
+      {BEAMS.map((group) => {
+        const down = PHRASE[group[0]].step >= 5;
+        const sx = group.map((i) => xs[i] + (down ? -3.9 : 3.9));
+        const ends = group.map((i) => ys[i] + (down ? STEM : -STEM));
+        const x1 = sx[0];
+        const x2 = sx[sx.length - 1];
+        // Engravers cap beam slope and never let a stem get shorter than about
+        // two staff spaces: clamp the rise, then push the whole beam clear.
+        const mid = (ends[0] + ends[ends.length - 1]) / 2;
+        const rise = Math.max(-8, Math.min(8, (ends[ends.length - 1] - ends[0]) / 2));
+        let a = mid - rise;
+        let b = mid + rise;
+        const line = (x: number) => a + ((b - a) * (x - x1)) / (x2 - x1);
+        const need = Math.max(
+          ...group.map((i, k) => (down ? ys[i] + 15 - line(sx[k]) : line(sx[k]) - (ys[i] - 15))),
+        );
+        if (need > 0) {
+          const shift = down ? need : -need;
+          a += shift;
+          b += shift;
+        }
+        const at = line;
+        const [y1, y2] = [a, b];
+        const thick = down ? -3.2 : 3.2;
+        return (
+          <g className="hero-note" key={group[0]} style={delay(group[group.length - 1])}>
+            {group.map((i, k) => (
+              <line
+                className="n-stem-h"
+                key={i}
+                x1={sx[k]}
+                y1={ys[i] + (down ? 1 : -1)}
+                x2={sx[k]}
+                y2={at(sx[k])}
+              />
+            ))}
+            <path
+              className="n-beam"
+              d={`M${x1} ${y1} L${x2} ${y2} L${x2} ${y2 + thick} L${x1} ${y1 + thick} Z`}
+            />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}

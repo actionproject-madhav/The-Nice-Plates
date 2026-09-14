@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { GoogleButton, useAuth } from "../lib/auth";
 import { api, type ReadyCheck } from "../lib/api";
-import { ChunkDiagram, TakeDiagram, CoachDiagram } from "../components/Notation";
+import { ChunkDiagram, TakeDiagram, CoachDiagram, HeroScore } from "../components/Notation";
 
 /** The product in three moves. Each one is a drawing; the words are a caption
  *  on it, not a substitute for it. */
@@ -39,7 +39,9 @@ export function SignIn() {
         actually happened.
       </h1>
 
-      <p className="lede" style={{ marginTop: 28 }}>
+      <HeroScore />
+
+      <p className="lede" style={{ marginTop: 20 }}>
         Record a take. Get back the bars you rushed and the tempo you actually held.
       </p>
 

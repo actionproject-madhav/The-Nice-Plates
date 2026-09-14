@@ -571,6 +571,7 @@ a.entry:hover {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
@@ -664,6 +665,71 @@ a.entry:hover {
 }
 .n-cell-bad {
   fill: var(--vermillion);
+}
+
+
+/* ── The hero score ───────────────────────────────────────────────────── */
+
+.hero-score {
+  max-width: 960px;
+  margin-top: clamp(16px, 3vw, 30px);
+}
+.hero-score .n-staff line {
+  opacity: 0.26;
+}
+.hero-score .n-bar line {
+  opacity: 0.34;
+}
+.n-head-open {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+.n-stem-h {
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+.hero-wave rect {
+  fill: currentColor;
+  opacity: 0.15;
+}
+
+/* Motion is opt-in: with reduced motion, or no CSS animation at all, the
+   drawing above is already the finished state. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-wave rect {
+    animation: wave-in 1.6s var(--ease) both;
+    animation-delay: var(--d);
+  }
+  .hero-note {
+    animation: note-land 0.62s var(--ease) both;
+    animation-delay: var(--d);
+  }
+}
+
+@keyframes wave-in {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.68;
+  }
+  52% {
+    opacity: 0.68;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+@keyframes note-land {
+  from {
+    opacity: 0;
+    transform: translateY(-9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ── The sequence strip (landing) ─────────────────────────────────────── */
