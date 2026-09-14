@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, type PieceDetail } from "../lib/api";
 import { Icon } from "../components/Icon";
 import { SectionStrip } from "../components/SectionStrip";
+import { friendly } from "../lib/errors";
 
 export function PiecePage() {
   const { pieceId = "" } = useParams();
@@ -16,7 +17,7 @@ export function PiecePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getPiece(pieceId).then(setPiece).catch((e) => setError(e.message));
+    api.getPiece(pieceId).then(setPiece).catch((e) => setError(friendly(e, "That piece isn’t here any more.")));
   }, [pieceId]);
 
   async function chunk() {
@@ -26,15 +27,19 @@ export function PiecePage() {
       const sections = await api.chunkPiece(pieceId, totalBars, perSection);
       setPiece((prev) => (prev ? { ...prev, sections } : prev));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't split that up.");
+      setError(friendly(e, "Couldn’t split that up."));
     } finally {
       setBusy(false);
     }
   }
 
   async function remove() {
-    await api.deletePiece(pieceId);
-    navigate("/library");
+    try {
+      await api.deletePiece(pieceId);
+      navigate("/library");
+    } catch (e) {
+      setError(friendly(e, "Couldn’t delete that piece."));
+    }
   }
 
   if (error) return <p className="notice" data-tone="bad">{error}</p>;

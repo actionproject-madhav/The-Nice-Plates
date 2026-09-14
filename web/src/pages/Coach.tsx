@@ -4,6 +4,7 @@
 import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { api } from "../lib/api";
 import { Icon } from "../components/Icon";
+import { friendly } from "../lib/errors";
 
 interface Turn {
   role: "user" | "assistant";
@@ -41,7 +42,7 @@ export function Coach() {
         { role: "assistant", content: reply.reply, tools: reply.tools_used },
       ]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "The coach didn't answer.");
+      setError(friendly(e, "The coach is quiet just now. Try again in a moment."));
     } finally {
       setBusy(false);
       box.current?.focus();

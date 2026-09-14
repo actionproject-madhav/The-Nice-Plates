@@ -7,6 +7,7 @@ import { Ledger } from "../components/Ledger";
 import { Sparkline } from "../components/Sparkline";
 import { Overture } from "../components/Overture";
 import { duration, relativeDay } from "../lib/format";
+import { friendly } from "../lib/errors";
 import { useAuth } from "../lib/auth";
 
 export function Dashboard() {
@@ -23,7 +24,7 @@ export function Dashboard() {
         setSessions(s);
         setPieces(l);
       })
-      .catch((e) => setError(e.message));
+      .catch((e) => setError(friendly(e, "Couldn’t load your log.")));
   }, []);
 
   const titleOf = (id: string | null) =>

@@ -25,6 +25,7 @@ import { LiveLevel } from "../components/LiveLevel";
 import { ScoreStrip } from "../components/ScoreStrip";
 import { SectionStrip } from "../components/SectionStrip";
 import { clock, percent } from "../lib/format";
+import { friendly } from "../lib/errors";
 
 type Phase = "idle" | "recording" | "uploading" | "analyzing" | "done" | "error";
 
@@ -59,7 +60,7 @@ export function Practice() {
   const recordedSeconds = useRef(0);
 
   useEffect(() => {
-    api.getPiece(pieceId).then(setPiece).catch((e) => setMessage(e.message));
+    api.getPiece(pieceId).then(setPiece).catch((e) => setMessage(friendly(e, "Couldn’t open that piece.")));
   }, [pieceId]);
 
   useEffect(
@@ -115,9 +116,7 @@ export function Practice() {
       setMessage(
         e instanceof DOMException
           ? "Allow microphone access to record."
-          : e instanceof Error
-            ? e.message
-            : "Couldn't start recording.",
+          : friendly(e, "Couldn’t start recording."),
       );
     }
   }
@@ -147,7 +146,7 @@ export function Practice() {
       await poll(ticket.recording_id);
     } catch (e) {
       setPhase("error");
-      setMessage(e instanceof Error ? e.message : "That recording didn't upload.");
+      setMessage(friendly(e, "That recording didn’t upload."));
     }
   }
 
@@ -166,7 +165,8 @@ export function Practice() {
       }
       if (status.status === "failed") {
         setPhase("error");
-        setMessage(status.error ?? "Couldn’t analyse that take.");
+        console.error("[nice-plates]", status.error);
+        setMessage("Couldn’t analyse that take.");
         return;
       }
     }

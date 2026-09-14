@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { api, type Piece } from "../lib/api";
 import { Icon } from "../components/Icon";
 import { relativeDay } from "../lib/format";
+import { friendly } from "../lib/errors";
 
 export function Library() {
   const [pieces, setPieces] = useState<Piece[]>([]);
@@ -13,7 +14,7 @@ export function Library() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.listPieces().then(setPieces).catch((e) => setError(e.message));
+    api.listPieces().then(setPieces).catch((e) => setError(friendly(e, "Couldn’t load your library.")));
   }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -34,7 +35,7 @@ export function Library() {
       setAdding(false);
       event.currentTarget.reset();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't save that.");
+      setError(friendly(e, "Couldn’t save that piece."));
     } finally {
       setBusy(false);
     }
