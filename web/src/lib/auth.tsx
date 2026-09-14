@@ -33,19 +33,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Google is deliberately unconfigured for now, so the landing page's own
-  // button issues the session. To skip the landing page entirely, call
-  // api.devLogin() here when there is no stored token.
+  // Sign-in is switched off for now: the app enters directly. Restore the gate
+  // by dropping the devLogin fallback below and re-adding the <SignIn/> branch
+  // in App.tsx — SignIn.tsx and the Google button are still here, unrouted.
   useEffect(() => {
-    if (!getToken()) {
-      setLoading(false);
-      return;
+    let cancelled = false;
+
+    async function enter() {
+      if (getToken()) {
+        try {
+          const existing = await api.me();
+          if (!cancelled) setUser(existing);
+          return;
+        } catch {
+          setToken(null); // expired or revoked — fall through for a fresh one
+        }
+      }
+      try {
+        const fresh = await api.devLogin();
+        if (cancelled) return;
+        setToken(fresh.access_token);
+        setUser(fresh.user);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't reach the server.");
+      }
     }
-    api
-      .me()
-      .then(setUser)
-      .catch(() => setToken(null))
-      .finally(() => setLoading(false));
+
+    void enter().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const adopt = useCallback((token: string, u: User) => {

@@ -1,7 +1,6 @@
 /** Page chrome: masthead, nav, colophon. */
 
 import { NavLink, Outlet } from "react-router-dom";
-import { useAuth } from "../lib/auth";
 
 const NAV = [
   { to: "/", label: "Practice log", end: true },
@@ -10,7 +9,6 @@ const NAV = [
 ];
 
 export function Shell() {
-  const { user, signOut } = useAuth();
 
   return (
     <div className="shell">
@@ -25,11 +23,6 @@ export function Shell() {
                 {item.label}
               </NavLink>
             ))}
-            {user && (
-              <button type="button" className="navlink navlink-leave" onClick={signOut}>
-                Sign out
-              </button>
-            )}
           </nav>
         </div>
       </header>
@@ -41,7 +34,6 @@ export function Shell() {
       <footer>
         <div className="colophon">
           <span>CS Capstone</span>
-          <span>{user?.name ?? "Not signed in"}</span>
         </div>
       </footer>
     </div>

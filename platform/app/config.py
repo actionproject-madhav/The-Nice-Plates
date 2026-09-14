@@ -24,7 +24,12 @@ class Settings(BaseSettings):
 
     # ── Frontend / CORS ──
     # Comma-separated. Vercel preview URLs are matched by regex below.
-    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # 4173 is `vite preview` — without it a production build can't be checked
+    # locally, which is exactly when origin-specific bugs show up.
+    cors_origins: str = (
+        "http://localhost:5173,http://127.0.0.1:5173,"
+        "http://localhost:4173,http://127.0.0.1:4173"
+    )
     cors_origin_regex: str = r"https://.*\.vercel\.app"
 
     # ── Mongo ──
