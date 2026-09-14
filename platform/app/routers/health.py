@@ -23,6 +23,27 @@ async def health() -> dict:
     return {"status": "ok", "env": settings.env}
 
 
+@router.get("/health/coach")
+async def coach_probe() -> dict:
+    """Can this key actually reach the coach model?
+
+    `coach: ok` in /health/ready only means the key is non-empty, which stayed
+    true through a malformed key and again through a project with no access to
+    gpt-4o-mini. One retrieve call answers it for real, and needs no sign-in, so
+    a deploy can be checked from outside.
+    """
+    from app.services.coach import CoachUnavailable, _client, _explain
+
+    if not settings.coach_configured:
+        return {"ok": False, "model": settings.coach_model, "error": "OPENAI_API_KEY is not set"}
+    try:
+        await _client().models.retrieve(settings.coach_model)
+    except Exception as exc:  # every failure here is a configuration answer
+        err = _explain(exc) if not isinstance(exc, CoachUnavailable) else exc
+        return {"ok": False, "model": settings.coach_model, "error": str(err)}
+    return {"ok": True, "model": settings.coach_model}
+
+
 @router.get("/health/ready")
 async def ready() -> dict:
     mongo_ok = await db.ping()

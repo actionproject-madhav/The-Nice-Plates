@@ -136,6 +136,13 @@ def _explain(exc: Exception) -> CoachUnavailable:
         return CoachUnavailable(
             "OpenAI is rate-limiting us. Wait a few seconds and ask again.", status=429
         )
+    if isinstance(exc, openai.PermissionDeniedError):
+        return CoachUnavailable(
+            f"This OpenAI project has no access to {settings.coach_model}. Enable the model "
+            "for the project at platform.openai.com/settings/organization/projects, or set "
+            "COACH_MODEL to one the project can reach.",
+            status=502,
+        )
     if isinstance(exc, openai.NotFoundError):
         return CoachUnavailable(
             f"This API key has no access to {settings.coach_model}. Set COACH_MODEL "
