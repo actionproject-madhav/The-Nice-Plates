@@ -21,6 +21,8 @@ import {
   type RecordingKind,
 } from "../lib/api";
 import { Icon } from "../components/Icon";
+import { LiveLevel } from "../components/LiveLevel";
+import { ScoreStrip } from "../components/ScoreStrip";
 import { clock, percent } from "../lib/format";
 
 type Phase = "idle" | "recording" | "uploading" | "analyzing" | "done" | "error";
@@ -34,6 +36,8 @@ export function Practice() {
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   const [phase, setPhase] = useState<Phase>("idle");
+  // Held in state, not just on the recorder, so the level meter can read it.
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [kind, setKind] = useState<RecordingKind>("performance");
   const [elapsed, setElapsed] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -70,9 +74,9 @@ export function Practice() {
     recordingKind.current = nextKind;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const live = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
-      const rec = new MediaRecorder(stream, { mimeType: mime });
+      const rec = new MediaRecorder(live, { mimeType: mime });
       chunks.current = [];
       rec.ondataavailable = (e) => e.data.size > 0 && chunks.current.push(e.data);
       rec.onstop = () => void upload(new Blob(chunks.current, { type: mime }), mime);
@@ -90,6 +94,7 @@ export function Practice() {
 
       rec.start();
       recorder.current = rec;
+      setStream(live);
       setPhase("recording");
       setElapsed(0);
       recordedSeconds.current = 0;
@@ -99,6 +104,7 @@ export function Practice() {
         setElapsed(recordedSeconds.current);
       }, 1000);
     } catch (e) {
+      setStream(null);
       setPhase("error");
       setMessage(
         e instanceof DOMException
@@ -114,6 +120,7 @@ export function Practice() {
     if (ticker.current) window.clearInterval(ticker.current);
     recorder.current?.stop();
     recorder.current?.stream.getTracks().forEach((t) => t.stop());
+    setStream(null);
     setPhase("uploading");
   }
 
@@ -172,6 +179,7 @@ export function Practice() {
   }
 
   const section = piece?.sections.find((s) => s.id === sectionId);
+  const lastBar = piece?.sections.reduce((m, s) => Math.max(m, s.end_bar), 0) || 8;
   const working = phase === "uploading" || phase === "analyzing";
 
   return (
@@ -181,13 +189,16 @@ export function Practice() {
         {section && ` · bars ${section.start_bar}–${section.end_bar}`}
       </p>
 
-      <p className="clock display">
-        {phase === "recording" && <span className="pulse" />}
-        {clock(elapsed)}
-      </p>
+      <div className="take">
+        <p className="clock display" style={{ margin: 0 }}>
+          {phase === "recording" && <span className="pulse" />}
+          {clock(elapsed)}
+        </p>
+        <LiveLevel stream={stream} />
+      </div>
 
       {phase === "recording" && (
-        <p className="small muted" style={{ marginTop: -8 }}>
+        <p className="small muted" style={{ marginTop: 10 }}>
           {kind === "voice_note" ? "Say what you worked on" : "Playing"}
         </p>
       )}
@@ -291,12 +302,29 @@ export function Practice() {
         </>
       )}
 
-      {feedback && <Verdict feedback={feedback} playback={playback} />}
+      {feedback && (
+        <Verdict
+          feedback={feedback}
+          playback={playback}
+          from={section?.start_bar ?? 1}
+          to={section?.end_bar ?? lastBar}
+        />
+      )}
     </div>
   );
 }
 
-function Verdict({ feedback, playback }: { feedback: Feedback; playback: string | null }) {
+function Verdict({
+  feedback,
+  playback,
+  from,
+  to,
+}: {
+  feedback: Feedback;
+  playback: string | null;
+  from: number;
+  to: number;
+}) {
   return (
     <div className="reveal">
       <hr className="rule" />
@@ -319,15 +347,14 @@ function Verdict({ feedback, playback }: { feedback: Feedback; playback: string 
       </dl>
 
       {feedback.problem_bars.length > 0 && (
-        <div style={{ marginTop: 28 }}>
+        <div style={{ marginTop: 30 }}>
           <p className="eyebrow">Worth another pass</p>
-          <div className="bars">
-            {feedback.problem_bars.map((bar) => (
-              <span className="bar-chip" key={bar}>
-                {bar}
-              </span>
-            ))}
-          </div>
+          <ScoreStrip
+            from={from}
+            to={to}
+            problem={feedback.problem_bars}
+            label={`Bars that need another pass: ${feedback.problem_bars.join(", ")}`}
+          />
         </div>
       )}
 
