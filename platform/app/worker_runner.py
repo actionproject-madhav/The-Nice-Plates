@@ -15,6 +15,10 @@ from pathlib import Path
 
 log = logging.getLogger(__name__)
 
+# "embedded_worker: true" in config says nothing about whether the loop is
+# actually running. This says.
+STATUS: dict = {"state": "not_started", "error": None}
+
 # audio/ is a sibling of platform/ in the repo, not an installed package.
 AUDIO_DIR = Path(__file__).resolve().parents[2] / "audio"
 if str(AUDIO_DIR) not in sys.path:
@@ -23,17 +27,23 @@ if str(AUDIO_DIR) not in sys.path:
 
 async def run_embedded_worker() -> None:
     try:
-        from worker import worker_loop
-    except ImportError as exc:
+        from worker import HEARTBEAT, worker_loop
+    except Exception as exc:
+        STATUS.update(state="import_failed", error=f"{type(exc).__name__}: {exc}"[:300])
         log.error("worker: could not import audio/worker.py (%s); analysis is disabled", exc)
         return
 
+    STATUS["heartbeat"] = HEARTBEAT
+
     while True:
         try:
+            STATUS["state"] = "running"
             await worker_loop()
         except asyncio.CancelledError:
+            STATUS["state"] = "stopped"
             log.info("worker: stopping")
             raise
-        except Exception:
+        except Exception as exc:
+            STATUS.update(state="restarting", error=f"{type(exc).__name__}: {exc}"[:300])
             log.exception("worker: loop crashed; restarting in 5s")
             await asyncio.sleep(5)

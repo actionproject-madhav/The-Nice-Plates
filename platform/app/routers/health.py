@@ -8,6 +8,8 @@ five-second check instead of a debugging session.
 
 from __future__ import annotations
 
+import time
+
 from fastapi import APIRouter
 
 from app.config import settings
@@ -38,9 +40,22 @@ async def ready() -> dict:
     }
     degraded = [name for name, c in checks.items() if not c["ok"]]
     required_down = [name for name, c in checks.items() if c["required"] and not c["ok"]]
+    worker: dict = {"enabled": settings.embedded_worker}
+    if settings.embedded_worker:
+        from app.worker_runner import STATUS
+
+        worker.update(STATUS)
+        beat = STATUS.get("heartbeat") or {}
+        last = beat.get("last_tick")
+        worker["seconds_since_tick"] = round(time.time() - last, 1) if last else None
+        worker["jobs_done"] = beat.get("jobs_done")
+        worker["last_job_error"] = beat.get("last_error")
+        # A loop that hasn't ticked in a minute is wedged, whatever it claims.
+        worker["alive"] = last is not None and (time.time() - last) < 60
+
     return {
         "status": "down" if required_down else ("degraded" if degraded else "ok"),
         "checks": checks,
         "queue_depth": await queue.depth(),
-        "embedded_worker": settings.embedded_worker,
+        "worker": worker,
     }

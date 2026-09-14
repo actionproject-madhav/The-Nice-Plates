@@ -43,6 +43,10 @@ _mongo: AsyncIOMotorClient | None = None
 _redis: aioredis.Redis | None = None
 _last_sweep = 0.0
 
+# Updated every pass so the API can report whether this loop is actually
+# alive, rather than just whether it was configured to start.
+HEARTBEAT: dict = {"last_tick": None, "jobs_done": 0, "last_error": None}
+
 
 async def _db():
     global _mongo
@@ -104,6 +108,7 @@ async def process_voice_note(db, job_id: str, recording_id: str, recording: dict
         {"_id": ObjectId(job_id)},
         {"$set": {"status": JobStatus.DONE.value, "finished_at": utcnow(), "error": None}},
     )
+    HEARTBEAT["jobs_done"] += 1
     log.info("job %s: voice note via %s — %r", job_id, note.engine, note.text[:60])
 
 
@@ -219,6 +224,7 @@ async def process_job(db, job_id: str) -> None:
                 }
             },
         )
+        HEARTBEAT["jobs_done"] += 1
         log.info(
             "job %s done via %s: pitch %.0f%%, timing %.0f%%",
             job_id,
@@ -229,6 +235,7 @@ async def process_job(db, job_id: str) -> None:
 
     except Exception as exc:
         log.exception("job %s failed", job_id)
+        HEARTBEAT["last_error"] = f"{type(exc).__name__}: {exc}"[:200]
         attempts = (claimed.get("attempts", 0) or 0) + 1
         exhausted = attempts >= settings.max_attempts
         await db[Collections.JOBS].update_one(
@@ -271,6 +278,7 @@ async def worker_loop() -> None:
     queue = await _queue()
 
     while True:
+        HEARTBEAT["last_tick"] = time.time()
         picked = False
         if queue is not None:
             try:
