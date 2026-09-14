@@ -52,6 +52,10 @@ export function SectionStrip({ sections, activeId, onPick, linkTo, lead }: Props
             className: "sec-cell",
             "data-on": section.id === activeId || undefined,
             onPointerEnter: () => setHot(section.id),
+            // Keyboard focus moves the readout too, or a keyboard user gets
+            // an outline and no idea which bars they are on.
+            onFocus: () => setHot(section.id),
+            onBlur: () => setHot(null),
             children: (
               <span className="visually-hidden">
                 bars {section.start_bar} to {section.end_bar}

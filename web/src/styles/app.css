@@ -721,11 +721,6 @@ button.score-strip-bar:hover {
   50% { opacity: 0.25; }
 }
 
-.sections {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
 .section-chip {
   font-family: var(--font-mono);
   font-size: var(--text-small);
@@ -971,6 +966,14 @@ button.score-strip-bar:hover {
 .hero-score {
   max-width: 960px;
   margin-top: clamp(16px, 3vw, 30px);
+  /* Paired with preserveAspectRatio="xMinYMid slice": narrow screens crop to
+     the opening bars instead of shrinking six of them into a smear. */
+  aspect-ratio: 640 / 150;
+}
+@media (max-width: 680px) {
+  .hero-score {
+    aspect-ratio: 300 / 150;
+  }
 }
 .hero-score .n-staff line {
   opacity: 0.26;
