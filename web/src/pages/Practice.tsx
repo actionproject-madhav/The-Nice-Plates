@@ -23,6 +23,7 @@ import {
 import { Icon } from "../components/Icon";
 import { LiveLevel } from "../components/LiveLevel";
 import { ScoreStrip } from "../components/ScoreStrip";
+import { SectionStrip } from "../components/SectionStrip";
 import { clock, percent } from "../lib/format";
 
 type Phase = "idle" | "recording" | "uploading" | "analyzing" | "done" | "error";
@@ -42,6 +43,10 @@ export function Practice() {
   const [elapsed, setElapsed] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [transcript, setTranscript] = useState<string | null>(null);
+  // What the finished recording was, straight from the API rather than from
+  // what we asked for — a voice note has no feedback to render, so its result
+  // block has to exist on its own.
+  const [done, setDone] = useState<RecordingKind | null>(null);
   const [playback, setPlayback] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -70,6 +75,7 @@ export function Practice() {
     setFeedback(null);
     setTranscript(null);
     setPlayback(null);
+    setDone(null);
     setKind(nextKind);
     recordingKind.current = nextKind;
 
@@ -154,10 +160,8 @@ export function Practice() {
         setFeedback(status.feedback);
         setTranscript(status.transcript);
         setPlayback(status.playback_url);
+        setDone(status.kind);
         setPhase("done");
-        if (status.kind === "voice_note" && !status.transcript) {
-          setMessage("Saved, but nothing was transcribed — the API has no OpenAI key set.");
-        }
         return;
       }
       if (status.status === "failed") {
@@ -255,19 +259,15 @@ export function Practice() {
         </p>
       )}
 
-      {transcript && (
-        <div className="reveal" style={{ marginTop: 32 }}>
+      {done === "voice_note" && (
+        <div className="reveal" style={{ marginTop: 34 }}>
           <p className="eyebrow">You said</p>
-          <blockquote
-            style={{
-              margin: 0,
-              maxWidth: "var(--measure)",
-              borderLeft: "1.5px solid var(--forest)",
-              paddingLeft: 18,
-            }}
-          >
-            {transcript}
-          </blockquote>
+          {transcript ? (
+            <blockquote className="said">{transcript}</blockquote>
+          ) : (
+            <p className="notice">The take is saved, but nothing came back from transcription.</p>
+          )}
+          {playback && <audio className="player" controls src={playback} />}
         </div>
       )}
 
@@ -275,27 +275,21 @@ export function Practice() {
         <>
           <hr className="rule" />
           <p className="eyebrow">Section</p>
-          <div className="sections">
-            <button
-              type="button"
-              className="section-chip"
-              aria-pressed={sectionId === null}
-              onClick={() => setSectionId(null)}
-            >
-              whole piece
-            </button>
-            {piece.sections.map((s) => (
+          <SectionStrip
+            sections={piece.sections}
+            activeId={sectionId}
+            onPick={(id) => setSectionId(id === sectionId ? null : id)}
+            lead={
               <button
                 type="button"
-                key={s.id}
                 className="section-chip"
-                aria-pressed={sectionId === s.id}
-                onClick={() => setSectionId(s.id)}
+                aria-pressed={sectionId === null}
+                onClick={() => setSectionId(null)}
               >
-                {s.start_bar}–{s.end_bar}
+                whole piece
               </button>
-            ))}
-          </div>
+            }
+          />
         </>
       )}
 
@@ -355,9 +349,7 @@ function Verdict({
         </div>
       )}
 
-      {playback && (
-        <audio controls src={playback} style={{ marginTop: 28, width: "100%", maxWidth: 440 }} />
-      )}
+      {playback && <audio className="player" controls src={playback} />}
 
       <p className="small muted mono" style={{ marginTop: 24 }}>
         {feedback.engine} engine

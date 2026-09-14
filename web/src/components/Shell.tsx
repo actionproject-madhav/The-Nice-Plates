@@ -26,7 +26,7 @@ export function Shell() {
               </NavLink>
             ))}
             {user && (
-              <button type="button" className="navlink" onClick={signOut}>
+              <button type="button" className="navlink navlink-leave" onClick={signOut}>
                 Sign out
               </button>
             )}

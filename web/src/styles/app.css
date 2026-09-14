@@ -154,6 +154,14 @@ a {
   color: var(--ink);
   background: var(--hairline);
 }
+/* Not one of the places you can go: it leaves. */
+.navlink-leave {
+  margin-left: 10px;
+  padding-left: 16px;
+  border-left: 1px solid var(--hairline);
+  border-radius: 0;
+  color: var(--soft);
+}
 
 main {
   flex: 1;
@@ -601,6 +609,73 @@ button.score-strip-bar:hover {
   opacity: 0.8;
 }
 
+
+/* ── Sections, as a strip of the score ───────────────────────────────── */
+
+.sec {
+  max-width: 780px;
+}
+.sec-readout {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin: 0 0 10px;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.sec-readout-value {
+  color: var(--ink);
+}
+.sec-strip {
+  display: grid;
+  height: 38px;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 8px,
+    var(--hairline) 8px 9px
+  );
+}
+.sec-cell {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.2s var(--ease);
+}
+.sec-cell:first-child {
+  border-left: none;
+}
+.sec-cell:hover {
+  background: var(--hairline);
+}
+.sec-cell[data-on] {
+  background: var(--stone);
+}
+.sec-nums {
+  display: grid;
+  padding-top: 7px;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--soft);
+}
+.sec-nums span {
+  min-width: 0;
+  padding-left: 1px;
+}
+.sec-nums span[data-on] {
+  color: var(--ink);
+}
+
 /* ── Practice ─────────────────────────────────────────────────────────── */
 
 .clock {
@@ -609,6 +684,26 @@ button.score-strip-bar:hover {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.04em;
   line-height: 1;
+}
+
+/* Your own words, in the display face — the same treatment a question to the
+   coach gets. Anything you said is set as an utterance, not as prose. */
+.said {
+  margin: 0;
+  max-width: var(--measure);
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.3125rem;
+  letter-spacing: -0.02em;
+  line-height: 1.34;
+  color: var(--ink);
+}
+
+.player {
+  display: block;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 24px;
 }
 
 .pulse {
@@ -657,21 +752,33 @@ button.score-strip-bar:hover {
   gap: 26px;
   margin-bottom: 32px;
 }
-.turn-role {
-  font-size: var(--text-micro);
-  font-weight: 600;
-  letter-spacing: var(--track-micro);
-  text-transform: uppercase;
-  color: var(--soft);
-  margin-bottom: 8px;
-}
 .turn-body {
   max-width: var(--measure);
   white-space: pre-wrap;
 }
+/* The question is a spoken line, so it is set in the display face; the answer
+   is prose, so it is not. Position and weight say who is talking — the "You"
+   and "Coach" labels were words doing a layout's job. */
+.turn[data-role="user"] .turn-body {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.3125rem;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  color: var(--ink);
+  text-wrap: balance;
+}
 .turn[data-role="assistant"] .turn-body {
-  border-left: 1.5px solid var(--forest);
-  padding-left: 18px;
+  color: var(--charcoal);
+  line-height: 1.62;
+}
+.turn[data-role="user"] + .turn[data-role="assistant"] {
+  margin-top: -10px;
+}
+.turn[data-role="assistant"] + .turn[data-role="user"] {
+  margin-top: 14px;
+  padding-top: 26px;
+  border-top: 1px solid var(--hairline);
 }
 .tool-trace {
   font-family: var(--font-mono);
@@ -684,8 +791,12 @@ button.score-strip-bar:hover {
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  border-top: 1px solid var(--hairline);
-  padding-top: 18px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+  transition: border-color 0.2s var(--ease);
+}
+.composer:focus-within {
+  border-bottom-color: var(--ink);
 }
 .composer textarea {
   flex: 1;

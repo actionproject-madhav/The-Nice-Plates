@@ -87,7 +87,6 @@ export function Coach() {
       <div className="thread">
         {turns.map((turn, i) => (
           <div className="turn" data-role={turn.role} key={i}>
-            <p className="turn-role">{turn.role === "user" ? "You" : "Coach"}</p>
             <div className="turn-body">{turn.content}</div>
             {turn.tools && turn.tools.length > 0 && (
               <p className="tool-trace">read: {[...new Set(turn.tools)].join(", ")}</p>

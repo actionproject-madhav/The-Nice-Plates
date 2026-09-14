@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, type PieceDetail } from "../lib/api";
 import { Icon } from "../components/Icon";
+import { SectionStrip } from "../components/SectionStrip";
 
 export function PiecePage() {
   const { pieceId = "" } = useParams();
@@ -88,21 +89,14 @@ export function PiecePage() {
         </>
       ) : (
         <>
-          <div className="sections">
-            {piece.sections.map((section) => (
-              <Link
-                key={section.id}
-                to={`/practice/${piece.id}?section=${section.id}`}
-                className="section-chip"
-              >
-                {section.start_bar}–{section.end_bar}
-              </Link>
-            ))}
-          </div>
+          <SectionStrip
+            sections={piece.sections}
+            linkTo={(section) => `/practice/${piece.id}?section=${section.id}`}
+          />
           <button
             type="button"
             className="btn btn-quiet btn-sm"
-            style={{ marginTop: 24 }}
+            style={{ marginTop: 28 }}
             onClick={() => void chunk()}
             disabled={busy}
           >
