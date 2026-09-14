@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type Progress, type Session, type Piece } from "../lib/api";
 import { Ledger } from "../components/Ledger";
+import { Sparkline } from "../components/Sparkline";
 import { duration, relativeDay } from "../lib/format";
 import { useAuth } from "../lib/auth";
 
@@ -43,7 +44,10 @@ export function Dashboard() {
 
       {played ? (
         <>
-          <Ledger days={progress.recent_days} span={30} />
+          <div className="ledger-row">
+            <Ledger days={progress.recent_days} span={30} />
+            <Sparkline values={progress.pitch_accuracy_trend} label="Pitch, last takes" />
+          </div>
 
           <dl className="readout" style={{ marginTop: 40 }}>
             <Stat label="Streak" value={progress.current_streak_days} unit="d" />
