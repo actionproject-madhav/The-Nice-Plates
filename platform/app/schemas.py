@@ -91,6 +91,8 @@ class SessionEnd(BaseModel):
 class UploadRequest(BaseModel):
     filename: str = Field(default="take.webm")
     content_type: str = Field(default="audio/webm")
+    # "performance" goes to the note transcriber, "voice_note" to Whisper.
+    kind: Literal["performance", "voice_note"] = "performance"
     session_id: str | None = None
     piece_id: str | None = None
     section_id: str | None = None
@@ -114,8 +116,10 @@ class UploadComplete(BaseModel):
 class RecordingStatus(BaseModel):
     recording_id: str
     status: str
+    kind: str = "performance"
     job_status: str | None = None
     feedback: Feedback | None = None
+    transcript: str | None = None
     playback_url: str | None = None
     error: str | None = None
 

@@ -4,11 +4,22 @@
  * The one page that exercises the whole pipeline: start a session, record with
  * MediaRecorder, PUT the blob straight to storage, then poll until the worker
  * has something to say.
+ *
+ * Two kinds of recording go through the same path but land in different
+ * analysers — a performance goes to the note transcriber, a spoken note goes to
+ * Whisper. Which one is decided here, at record time, because the audio itself
+ * doesn't say.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { api, putToStorage, type Feedback, type PieceDetail } from "../lib/api";
+import {
+  api,
+  putToStorage,
+  type Feedback,
+  type PieceDetail,
+  type RecordingKind,
+} from "../lib/api";
 import { Icon } from "../components/Icon";
 import { clock, percent } from "../lib/format";
 
@@ -23,8 +34,10 @@ export function Practice() {
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   const [phase, setPhase] = useState<Phase>("idle");
+  const [kind, setKind] = useState<RecordingKind>("performance");
   const [elapsed, setElapsed] = useState(0);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [transcript, setTranscript] = useState<string | null>(null);
   const [playback, setPlayback] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -32,28 +45,33 @@ export function Practice() {
   const chunks = useRef<Blob[]>([]);
   const ticker = useRef<number | null>(null);
   const sessionSeconds = useRef(0);
+  // Read inside onstop, which closes over the value at record time.
+  const recordingKind = useRef<RecordingKind>("performance");
+  const recordedSeconds = useRef(0);
 
   useEffect(() => {
     api.getPiece(pieceId).then(setPiece).catch((e) => setMessage(e.message));
   }, [pieceId]);
 
-  // Close the session on unmount so a navigated-away session isn't left open.
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (ticker.current) window.clearInterval(ticker.current);
       recorder.current?.stream.getTracks().forEach((t) => t.stop());
-    };
-  }, []);
+    },
+    [],
+  );
 
-  const start = useCallback(async () => {
+  async function start(nextKind: RecordingKind) {
     setMessage(null);
     setFeedback(null);
+    setTranscript(null);
     setPlayback(null);
+    setKind(nextKind);
+    recordingKind.current = nextKind;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mime = MediaRecorder.isTypeSupported("audio/webm")
-        ? "audio/webm"
-        : "audio/mp4"; // Safari
+      const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
       const rec = new MediaRecorder(stream, { mimeType: mime });
       chunks.current = [];
       rec.ondataavailable = (e) => e.data.size > 0 && chunks.current.push(e.data);
@@ -74,9 +92,11 @@ export function Practice() {
       recorder.current = rec;
       setPhase("recording");
       setElapsed(0);
+      recordedSeconds.current = 0;
       ticker.current = window.setInterval(() => {
-        setElapsed((s) => s + 1);
+        recordedSeconds.current += 1;
         sessionSeconds.current += 1;
+        setElapsed(recordedSeconds.current);
       }, 1000);
     } catch (e) {
       setPhase("error");
@@ -88,9 +108,7 @@ export function Practice() {
             : "Couldn't start recording.",
       );
     }
-    // `upload` is stable enough for this flow; re-creating it would restart the recorder.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pieceId, sectionId, sessionId, piece]);
+  }
 
   function stop() {
     if (ticker.current) window.clearInterval(ticker.current);
@@ -100,21 +118,23 @@ export function Practice() {
   }
 
   async function upload(blob: Blob, mime: string) {
+    const isVoice = recordingKind.current === "voice_note";
     try {
       const ticket = await api.uploadUrl({
-        filename: `take.${mime.includes("mp4") ? "m4a" : "webm"}`,
+        filename: `${isVoice ? "note" : "take"}.${mime.includes("mp4") ? "m4a" : "webm"}`,
         content_type: mime,
+        kind: recordingKind.current,
         session_id: sessionId ?? undefined,
         piece_id: pieceId,
-        section_id: sectionId ?? undefined,
+        section_id: isVoice ? undefined : (sectionId ?? undefined),
       });
       await putToStorage(ticket, blob);
-      await api.completeUpload(ticket.recording_id, blob.size, elapsed);
+      await api.completeUpload(ticket.recording_id, blob.size, recordedSeconds.current);
       setPhase("analyzing");
       await poll(ticket.recording_id);
     } catch (e) {
       setPhase("error");
-      setMessage(e instanceof Error ? e.message : "That take didn't upload.");
+      setMessage(e instanceof Error ? e.message : "That recording didn't upload.");
     }
   }
 
@@ -125,18 +145,22 @@ export function Practice() {
       const status = await api.recording(recordingId);
       if (status.status === "analyzed") {
         setFeedback(status.feedback);
+        setTranscript(status.transcript);
         setPlayback(status.playback_url);
         setPhase("done");
+        if (status.kind === "voice_note" && !status.transcript) {
+          setMessage("Saved, but nothing was transcribed — the API has no OpenAI key set.");
+        }
         return;
       }
       if (status.status === "failed") {
         setPhase("error");
-        setMessage(status.error ?? "We couldn't analyse that take.");
+        setMessage(status.error ?? "We couldn't analyse that recording.");
         return;
       }
     }
     setPhase("error");
-    setMessage("Analysis is taking longer than expected. Check back on this recording shortly.");
+    setMessage("This is taking longer than expected. Check back on this recording shortly.");
   }
 
   async function finish() {
@@ -148,6 +172,7 @@ export function Practice() {
   }
 
   const section = piece?.sections.find((s) => s.id === sectionId);
+  const working = phase === "uploading" || phase === "analyzing";
 
   return (
     <div className="reveal">
@@ -161,20 +186,36 @@ export function Practice() {
         {clock(elapsed)}
       </p>
 
+      {phase === "recording" && (
+        <p className="small muted" style={{ marginTop: -8 }}>
+          {kind === "voice_note" ? "Say what you worked on" : "Playing"}
+        </p>
+      )}
+
       <div style={{ display: "flex", gap: 12, marginTop: 32, flexWrap: "wrap" }}>
         {phase === "recording" ? (
           <button type="button" className="btn" onClick={stop}>
             <Icon name="stop" /> Stop
           </button>
         ) : (
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => void start()}
-            disabled={phase === "uploading" || phase === "analyzing"}
-          >
-            <Icon name="record" /> {feedback ? "Another take" : "Record"}
-          </button>
+          <>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => void start("performance")}
+              disabled={working}
+            >
+              <Icon name="record" /> {feedback ? "Another take" : "Record"}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void start("voice_note")}
+              disabled={working}
+            >
+              <Icon name="mic" /> Voice note
+            </button>
+          </>
         )}
         {sessionId && phase !== "recording" && (
           <button type="button" className="btn btn-quiet" onClick={() => void finish()}>
@@ -183,16 +224,43 @@ export function Practice() {
         )}
       </div>
 
-      {(phase === "uploading" || phase === "analyzing") && (
+      {working && (
         <p className="small muted" style={{ marginTop: 24 }}>
-          {phase === "uploading" ? "Uploading the take…" : "Listening back…"}
+          {phase === "uploading"
+            ? "Uploading…"
+            : kind === "voice_note"
+              ? "Writing it down…"
+              : "Listening back…"}
         </p>
       )}
 
       {message && (
-        <p className="notice" data-tone={phase === "error" ? "bad" : undefined} style={{ marginTop: 24 }}>
+        <p
+          className="notice"
+          data-tone={phase === "error" ? "bad" : undefined}
+          style={{ marginTop: 24 }}
+        >
           {message}
         </p>
+      )}
+
+      {transcript && (
+        <div className="reveal" style={{ marginTop: 32 }}>
+          <p className="eyebrow">You said</p>
+          <blockquote
+            style={{
+              margin: 0,
+              maxWidth: "var(--measure)",
+              borderLeft: "1.5px solid var(--forest)",
+              paddingLeft: 18,
+            }}
+          >
+            {transcript}
+          </blockquote>
+          <p className="small muted" style={{ marginTop: 12 }}>
+            Added to this session’s notes, where the coach can read it.
+          </p>
+        </div>
       )}
 
       {piece && piece.sections.length > 0 && phase !== "recording" && (

@@ -30,8 +30,9 @@ from config import settings
 from pipeline.align import compare
 from pipeline.score import score
 from pipeline.transcribe import transcribe
+from pipeline.voice import transcribe_speech
 from nplates_data.collections import Collections
-from nplates_data.models import JobStatus, NoteEvent, utcnow
+from nplates_data.models import JobStatus, NoteEvent, RecordingKind, utcnow
 
 logging.basicConfig(
     level=settings.log_level, format="%(asctime)s %(levelname)-7s worker: %(message)s"
@@ -63,6 +64,47 @@ async def _queue() -> aioredis.Redis | None:
             log.warning("redis unavailable (%s); running on the Mongo sweep alone", exc)
             return None
     return _redis
+
+
+async def process_voice_note(db, job_id: str, recording_id: str, recording: dict, audio_path) -> None:
+    """Whisper a spoken practice note and append it to the session's notes."""
+    log.info("job %s: transcribing a voice note", job_id)
+
+    note = await asyncio.to_thread(
+        transcribe_speech,
+        str(audio_path),
+        settings.openai_api_key,
+        settings.whisper_model,
+    )
+
+    await db[Collections.RECORDINGS].update_one(
+        {"_id": ObjectId(recording_id)},
+        {
+            "$set": {
+                "status": "analyzed",
+                "transcript": note.text,
+                "updated_at": utcnow(),
+            }
+        },
+    )
+
+    # Append rather than overwrite: a session can collect several spoken notes.
+    if recording.get("session_id") and note.text:
+        session = await db[Collections.SESSIONS].find_one(
+            {"_id": ObjectId(recording["session_id"])}
+        )
+        existing = (session or {}).get("notes") or ""
+        combined = f"{existing}\n{note.text}".strip() if existing else note.text
+        await db[Collections.SESSIONS].update_one(
+            {"_id": ObjectId(recording["session_id"])},
+            {"$set": {"notes": combined[:2000], "updated_at": utcnow()}},
+        )
+
+    await db[Collections.JOBS].update_one(
+        {"_id": ObjectId(job_id)},
+        {"$set": {"status": JobStatus.DONE.value, "finished_at": utcnow(), "error": None}},
+    )
+    log.info("job %s: voice note via %s — %r", job_id, note.engine, note.text[:60])
 
 
 async def process_job(db, job_id: str) -> None:
@@ -99,6 +141,13 @@ async def process_job(db, job_id: str) -> None:
         import storage_client
 
         audio_path = storage_client.download(recording["storage_key"])
+
+        # A spoken note and a performance are different problems. Branch here
+        # rather than trying to infer it from the audio.
+        if recording.get("kind") == RecordingKind.VOICE_NOTE.value:
+            await process_voice_note(db, job_id, recording_id, recording, audio_path)
+            return
+
         log.info("job %s: transcribing %s", job_id, recording["storage_key"])
 
         result = await asyncio.to_thread(transcribe, str(audio_path))

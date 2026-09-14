@@ -21,7 +21,14 @@ from app.deps import Db, UserId
 from app.routers.pieces import oid, serialize
 from app.schemas import RecordingStatus, UploadComplete, UploadRequest, UploadTicket
 from nplates_data.collections import Collections
-from nplates_data.models import AnalysisJob, Feedback, JobStatus, Recording, utcnow
+from nplates_data.models import (
+    AnalysisJob,
+    Feedback,
+    JobStatus,
+    Recording,
+    RecordingKind,
+    utcnow,
+)
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/recordings", tags=["recordings"])
@@ -46,12 +53,16 @@ async def create_upload_url(body: UploadRequest, db: Db, user_id: UserId) -> Upl
             f"We can't read {body.content_type}. Try WebM, WAV, MP3 or FLAC.",
         )
 
-    key = storage.build_key(user_id, body.filename)
+    kind = RecordingKind(body.kind)
+    key = storage.build_key(
+        user_id, body.filename, prefix="notes" if kind is RecordingKind.VOICE_NOTE else "recordings"
+    )
     recording = Recording(
         user_id=user_id,
         session_id=body.session_id,
         piece_id=body.piece_id,
         section_id=body.section_id,
+        kind=kind,
         storage_key=key,
         content_type=body.content_type,
         status="pending",
@@ -144,8 +155,10 @@ async def recording_status(recording_id: str, db: Db, user_id: UserId) -> Record
     return RecordingStatus(
         recording_id=recording_id,
         status=doc.get("status", "pending"),
+        kind=doc.get("kind", RecordingKind.PERFORMANCE.value),
         job_status=(job or {}).get("status"),
         feedback=feedback,
+        transcript=doc.get("transcript"),
         playback_url=storage.presign_get(doc["storage_key"]),
         error=(job or {}).get("error"),
     )

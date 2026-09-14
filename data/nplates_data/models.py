@@ -108,11 +108,24 @@ class PracticeSession(MongoModel):
     recording_ids: list[str] = Field(default_factory=list)
 
 
+class RecordingKind(str, Enum):
+    """What the microphone captured, which decides how the worker treats it.
+
+    A performance goes to the note transcriber; a spoken note goes to Whisper.
+    Pointing speech-to-text at a piano gives nonsense and vice versa, so this
+    has to be decided at record time, not guessed later.
+    """
+
+    PERFORMANCE = "performance"
+    VOICE_NOTE = "voice_note"
+
+
 class Recording(MongoModel):
     user_id: str
     session_id: str | None = None
     piece_id: str | None = None
     section_id: str | None = None
+    kind: RecordingKind = RecordingKind.PERFORMANCE
     # Object-storage key. Bytes never pass through the API; the browser PUTs
     # straight to R2 with a presigned URL and the worker GETs it the same way.
     storage_key: str
@@ -122,6 +135,8 @@ class Recording(MongoModel):
     status: Literal["pending", "uploaded", "analyzing", "analyzed", "failed"] = "pending"
     job_id: str | None = None
     feedback_id: str | None = None
+    # Set for voice notes only: what Whisper heard.
+    transcript: str | None = None
 
 
 # ── Analysis ────────────────────────────────────────────────────────────────

@@ -26,6 +26,10 @@ class WorkerSettings(BaseSettings):
     sweep_every_seconds: int = 30
     max_attempts: int = 3
 
+    # Voice notes only. Note detection never calls OpenAI.
+    openai_api_key: str = ""
+    whisper_model: str = "whisper-1"
+
     r2_account_id: str = ""
     r2_access_key_id: str = ""
     r2_secret_access_key: str = ""

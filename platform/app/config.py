@@ -63,6 +63,8 @@ class Settings(BaseSettings):
     # need more. Roughly 1/15th the cost of gpt-4o per token.
     coach_model: str = "gpt-4o-mini"
     coach_max_tokens: int = 4096
+    # Speech-to-text for spoken practice notes. Never used for note detection.
+    whisper_model: str = "whisper-1"
 
     @property
     def cors_origin_list(self) -> list[str]:

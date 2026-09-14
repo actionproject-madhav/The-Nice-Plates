@@ -188,9 +188,12 @@ export interface Session {
   notes: string | null;
 }
 
+export type RecordingKind = "performance" | "voice_note";
+
 export interface UploadRequest {
   filename: string;
   content_type: string;
+  kind?: RecordingKind;
   session_id?: string;
   piece_id?: string;
   section_id?: string;
@@ -221,8 +224,10 @@ export interface Feedback {
 export interface RecordingStatus {
   recording_id: string;
   status: "pending" | "uploaded" | "analyzing" | "analyzed" | "failed";
+  kind: RecordingKind;
   job_status: string | null;
   feedback: Feedback | null;
+  transcript: string | null;
   playback_url: string | null;
   error: string | null;
 }

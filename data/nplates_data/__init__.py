@@ -15,6 +15,7 @@ from nplates_data.models import (
     Piece,
     PracticeSession,
     Recording,
+    RecordingKind,
     Section,
     User,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "Piece",
     "PracticeSession",
     "Recording",
+    "RecordingKind",
     "Section",
     "User",
 ]
