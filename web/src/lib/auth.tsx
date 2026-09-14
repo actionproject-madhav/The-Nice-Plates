@@ -33,41 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Sign-in is switched off for now: land straight in the app. The API issues
-  // a session without a password while Google is unconfigured. Restore the
-  // gate by deleting the devLogin fallback here and re-adding the <SignIn/>
-  // branch in App.tsx.
+  // Google is deliberately unconfigured for now, so the landing page's own
+  // button issues the session. To skip the landing page entirely, call
+  // api.devLogin() here when there is no stored token.
   useEffect(() => {
-    let cancelled = false;
-
-    async function enter() {
-      try {
-        if (getToken()) {
-          const existing = await api.me();
-          if (!cancelled) setUser(existing);
-          return;
-        }
-      } catch {
-        setToken(null); // expired or revoked — fall through and get a new one
-      }
-      try {
-        const fresh = await api.devLogin();
-        if (cancelled) return;
-        setToken(fresh.access_token);
-        setUser(fresh.user);
-      } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't reach the server.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+    if (!getToken()) {
+      setLoading(false);
+      return;
     }
-
-    void enter().finally(() => {
-      if (!cancelled) setLoading(false);
-    });
-    return () => {
-      cancelled = true;
-    };
+    api
+      .me()
+      .then(setUser)
+      .catch(() => setToken(null))
+      .finally(() => setLoading(false));
   }, []);
 
   const adopt = useCallback((token: string, u: User) => {
@@ -175,19 +153,13 @@ export function GoogleButton() {
     };
   }, [signInWithGoogle]);
 
-  if (!CLIENT_ID) {
-    return (
-      <p className="notice">
-        Google sign-in isn’t configured. Set <span className="mono">VITE_GOOGLE_CLIENT_ID</span> to
-        switch it on.
-      </p>
-    );
-  }
+  // Unconfigured is a deployment fact, not something to tell a musician about.
+  if (!CLIENT_ID) return null;
 
   return (
     <div>
       <div ref={slot} />
-      {!ready && <p className="small muted">Loading Google sign-in…</p>}
+      {!ready && <p className="small muted">One moment…</p>}
     </div>
   );
 }

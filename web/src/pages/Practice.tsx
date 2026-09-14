@@ -268,9 +268,6 @@ export function Practice() {
           >
             {transcript}
           </blockquote>
-          <p className="small muted" style={{ marginTop: 12 }}>
-            Added to this session’s notes, where the coach can read it.
-          </p>
         </div>
       )}
 

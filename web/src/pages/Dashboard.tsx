@@ -54,10 +54,7 @@ export function Dashboard() {
         </>
       ) : (
         <div className="empty">
-          <p>
-            Add a piece, split it into sections, and record a take. The log fills in from there.
-          </p>
-          <Link to="/library" className="btn btn-primary" style={{ marginTop: 20 }}>
+          <Link to="/library" className="btn btn-primary">
             Add your first piece
           </Link>
         </div>

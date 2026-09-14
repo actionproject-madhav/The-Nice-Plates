@@ -69,10 +69,6 @@ export function Coach() {
 
       {turns.length === 0 && (
         <>
-          <p className="lede" style={{ marginBottom: 28 }}>
-            It reads your sessions and your recording feedback before answering, so it can point
-            at a particular week and a particular bar rather than giving general advice.
-          </p>
           <div className="prompts">
             {OPENERS.map((opener) => (
               <button

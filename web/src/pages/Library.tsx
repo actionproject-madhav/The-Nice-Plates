@@ -84,7 +84,7 @@ export function Library() {
 
       {pieces.length === 0 ? (
         <div className="empty">
-          <p>Nothing here yet. A piece is just a title and a tempo — you can fill in the rest later.</p>
+          <p>Nothing here yet.</p>
         </div>
       ) : (
         <div className="stack">

@@ -212,7 +212,9 @@ main {
 .btn-primary {
   background: var(--forest);
   border-color: var(--forest);
-  color: #fffef9;
+  /* Not a fixed near-white: forest inverts in dark mode, so the label has to
+     take the canvas with it or it lands light-on-light. */
+  color: var(--canvas);
 }
 .btn-primary:hover:not(:disabled) {
   background: var(--ink);

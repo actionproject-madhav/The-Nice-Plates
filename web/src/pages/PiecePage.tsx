@@ -60,10 +60,6 @@ export function PiecePage() {
       <p className="eyebrow">Sections</p>
       {piece.sections.length === 0 ? (
         <>
-          <p className="lede small" style={{ marginBottom: 24 }}>
-            Split the score into runs of bars you can drill one at a time. You can re-split it
-            whenever the shape of the piece becomes clearer.
-          </p>
           <div className="row" style={{ maxWidth: 440 }}>
             <label className="field">
               <span>Bars in the piece</span>
