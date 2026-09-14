@@ -58,9 +58,10 @@ class Settings(BaseSettings):
 
     # ── Coach (OpenAI) ──
     openai_api_key: str = ""
-    # Bump this to whatever model your key has access to; any model with
-    # function calling works, the tool definitions do not change.
-    coach_model: str = "gpt-4o"
+    # The cheap tier. Function calling is identical to the larger models, and
+    # the coach's job — read three tool results, write 150 words — does not
+    # need more. Roughly 1/15th the cost of gpt-4o per token.
+    coach_model: str = "gpt-4o-mini"
     coach_max_tokens: int = 4096
 
     @property
