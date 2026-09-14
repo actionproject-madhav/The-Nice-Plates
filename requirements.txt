@@ -1,0 +1,4 @@
+# Render's default build command is `pip install -r requirements.txt` at the
+# repo root. This forwards to the API's real requirements so that default works
+# without anyone having to remember to override the field.
+-r platform/requirements.txt
