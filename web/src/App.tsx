@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Shell } from "./components/Shell";
 import { useAuth } from "./lib/auth";
-import { SignIn } from "./pages/SignIn";
 import { Dashboard } from "./pages/Dashboard";
 import { Library } from "./pages/Library";
 import { PiecePage } from "./pages/PiecePage";
@@ -9,7 +8,7 @@ import { Practice } from "./pages/Practice";
 import { Coach } from "./pages/Coach";
 
 export function App() {
-  const { user, loading } = useAuth();
+  const { loading, error } = useAuth();
 
   if (loading) {
     return (
@@ -21,17 +20,14 @@ export function App() {
     );
   }
 
-  if (!user) {
+  if (error) {
     return (
       <div className="shell">
         <main>
-          <SignIn />
+          <p className="notice" data-tone="bad">
+            Can’t reach the server right now.
+          </p>
         </main>
-        <footer>
-          <div className="colophon">
-            <span>CS Capstone</span>
-          </div>
-        </footer>
       </div>
     );
   }

@@ -33,16 +33,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Sign-in is switched off for now: land straight in the app. The API issues
+  // a session without a password while Google is unconfigured. Restore the
+  // gate by deleting the devLogin fallback here and re-adding the <SignIn/>
+  // branch in App.tsx.
   useEffect(() => {
-    if (!getToken()) {
-      setLoading(false);
-      return;
+    let cancelled = false;
+
+    async function enter() {
+      try {
+        if (getToken()) {
+          const existing = await api.me();
+          if (!cancelled) setUser(existing);
+          return;
+        }
+      } catch {
+        setToken(null); // expired or revoked — fall through and get a new one
+      }
+      try {
+        const fresh = await api.devLogin();
+        if (cancelled) return;
+        setToken(fresh.access_token);
+        setUser(fresh.user);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Couldn't reach the server.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-    api
-      .me()
-      .then(setUser)
-      .catch(() => setToken(null))
-      .finally(() => setLoading(false));
+
+    void enter().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const adopt = useCallback((token: string, u: User) => {

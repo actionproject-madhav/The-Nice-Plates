@@ -55,14 +55,14 @@ async def ask(body: CoachRequest, db: Db, user_id: UserId) -> CoachResponse:
     try:
         reply, tools_used = await coach_service.ask(db, user_id, history, body.message)
     except coach_service.CoachUnavailable as exc:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            "The coach isn't configured yet — the API is missing its OpenAI key.",
-        ) from exc
+        # Already a human-readable reason — pass it through rather than
+        # flattening every failure into "something went wrong".
+        raise HTTPException(exc.status, str(exc)) from exc
     except Exception as exc:
         log.exception("coach turn failed")
         raise HTTPException(
-            status.HTTP_502_BAD_GATEWAY, "The coach couldn't answer just now. Try again."
+            status.HTTP_502_BAD_GATEWAY,
+            f"The coach couldn't answer: {type(exc).__name__}.",
         ) from exc
 
     await db[Collections.COACH_THREADS].update_one(

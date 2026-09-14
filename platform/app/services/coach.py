@@ -103,7 +103,50 @@ TOOLS: list[dict[str, Any]] = [
 
 
 class CoachUnavailable(RuntimeError):
-    pass
+    """The coach cannot run, with a reason a human can act on."""
+
+    def __init__(self, message: str, *, status: int = 503) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+def _explain(exc: Exception) -> CoachUnavailable:
+    """Turn an OpenAI SDK exception into something actionable.
+
+    "The coach couldn't answer" is useless when the real answer is "the
+    account has no credit". These four failures look identical in a stack
+    trace and need completely different fixes, so name them.
+    """
+    import openai
+
+    if isinstance(exc, openai.AuthenticationError):
+        return CoachUnavailable(
+            "OpenAI rejected the API key. Check OPENAI_API_KEY on the server — "
+            "it may have been revoked or copied incompletely.",
+            status=502,
+        )
+    if isinstance(exc, openai.RateLimitError):
+        text = str(exc).lower()
+        if "quota" in text or "billing" in text:
+            return CoachUnavailable(
+                "The OpenAI account has no credit left. Add a payment method at "
+                "platform.openai.com/settings/organization/billing.",
+                status=502,
+            )
+        return CoachUnavailable(
+            "OpenAI is rate-limiting us. Wait a few seconds and ask again.", status=429
+        )
+    if isinstance(exc, openai.NotFoundError):
+        return CoachUnavailable(
+            f"This API key has no access to {settings.coach_model}. Set COACH_MODEL "
+            "to a model the key can reach.",
+            status=502,
+        )
+    if isinstance(exc, openai.BadRequestError):
+        return CoachUnavailable(f"OpenAI rejected the request: {exc}", status=502)
+    if isinstance(exc, openai.APIConnectionError):
+        return CoachUnavailable("Couldn't reach OpenAI. Check network egress.", status=504)
+    return CoachUnavailable(f"The coach failed: {type(exc).__name__}: {exc}", status=502)
 
 
 # ── Tool implementations ────────────────────────────────────────────────────
@@ -221,16 +264,20 @@ async def ask(db, user_id: str, history: list[dict], user_message: str) -> tuple
     tools_used: list[str] = []
 
     for _ in range(MAX_TOOL_ROUNDS):
-        response = await client.chat.completions.create(
-            model=settings.coach_model,
-            messages=messages,
-            tools=TOOLS,
-            tool_choice="auto",
-            max_tokens=settings.coach_max_tokens,
-            temperature=0.4,
-        )
-        choice = response.choices[0]
-        message = choice.message
+        try:
+            response = await client.chat.completions.create(
+                model=settings.coach_model,
+                messages=messages,
+                tools=TOOLS,
+                tool_choice="auto",
+                max_tokens=settings.coach_max_tokens,
+                temperature=0.4,
+            )
+        except Exception as exc:
+            log.warning("coach: OpenAI call failed — %s: %s", type(exc).__name__, exc)
+            raise _explain(exc) from exc
+
+        message = response.choices[0].message
 
         if not message.tool_calls:
             return (message.content or "I didn't have anything useful to add there.").strip(), tools_used
