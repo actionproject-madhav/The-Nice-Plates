@@ -36,6 +36,22 @@ export function setToken(token: string | null) {
   }
 }
 
+/**
+ * Make an API-relative path absolute.
+ *
+ * The local-disk storage backend returns paths like `/v1/storage/local/...`,
+ * which a browser resolves against the page's own origin — Vercel — not the
+ * API. That silently 404s and leaves a dead <audio> element. R2 returns fully
+ * qualified URLs, which pass through untouched.
+ */
+export function absoluteUrl(url: string | null): string | null {
+  if (!url) return null;
+  if (/^https?:\/\//i.test(url) || url.startsWith("blob:") || url.startsWith("data:")) {
+    return url;
+  }
+  return `${BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(init.headers);
@@ -101,7 +117,10 @@ export const api = {
       method: "POST",
       body: json({ size_bytes: sizeBytes, duration_seconds: durationSeconds }),
     }),
-  recording: (id: string) => request<RecordingStatus>(`/v1/recordings/${id}`),
+  recording: async (id: string) => {
+    const status = await request<RecordingStatus>(`/v1/recordings/${id}`);
+    return { ...status, playback_url: absoluteUrl(status.playback_url) };
+  },
 
   progress: () => request<Progress>("/v1/progress/summary"),
 
@@ -114,9 +133,7 @@ export const api = {
 
 /** PUT the recorded bytes straight to object storage, bypassing the API. */
 export async function putToStorage(ticket: UploadTicket, blob: Blob): Promise<void> {
-  const url = ticket.upload_url.startsWith("http")
-    ? ticket.upload_url
-    : `${BASE}${ticket.upload_url}`;
+  const url = absoluteUrl(ticket.upload_url)!;
   const response = await fetch(url, {
     method: ticket.method,
     headers: ticket.headers,
