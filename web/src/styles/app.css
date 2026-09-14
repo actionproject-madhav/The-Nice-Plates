@@ -121,10 +121,21 @@ a {
 }
 
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   font-family: var(--font-display);
   font-size: 1.0625rem;
   letter-spacing: -0.02em;
   white-space: nowrap;
+}
+.mark {
+  display: block;
+  flex: none;
+}
+/* The staff is hairline; the repeat is the ink. */
+.mark-staff {
+  opacity: 0.38;
 }
 
 .masthead nav {

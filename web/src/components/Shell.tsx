@@ -1,6 +1,7 @@
 /** Page chrome: masthead, nav, colophon. */
 
 import { NavLink, Outlet } from "react-router-dom";
+import { Mark } from "./Mark";
 
 const NAV = [
   { to: "/", label: "Practice log", end: true },
@@ -15,7 +16,8 @@ export function Shell() {
       <header className="masthead">
         <div className="masthead-inner">
           <NavLink to="/" className="wordmark">
-            The Nice Plates
+            <Mark />
+            <span>The Nice Plates</span>
           </NavLink>
           <nav>
             {NAV.map((item) => (
