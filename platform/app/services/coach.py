@@ -145,7 +145,23 @@ def _explain(exc: Exception) -> CoachUnavailable:
     if isinstance(exc, openai.BadRequestError):
         return CoachUnavailable(f"OpenAI rejected the request: {exc}", status=502)
     if isinstance(exc, openai.APIConnectionError):
-        return CoachUnavailable("Couldn't reach OpenAI. Check network egress.", status=504)
+        # APIConnectionError is not only a network failure. httpx raises
+        # LocalProtocolError before a socket is ever opened when the key holds a
+        # newline, a space or quotes, and the SDK wraps that here too. Saying
+        # "check network egress" then sends everyone to the wrong place, so name
+        # the cause instead of guessing at it.
+        cause = exc.__cause__
+        if type(cause).__name__ == "LocalProtocolError":
+            return CoachUnavailable(
+                "The OPENAI_API_KEY value is malformed: it carries whitespace or quotes, "
+                "so the request header is rejected before any connection is made. "
+                "Re-paste the key on the API with no trailing newline.",
+                status=502,
+            )
+        return CoachUnavailable(
+            f"Couldn't reach OpenAI ({type(cause).__name__ if cause else 'no cause'}: {cause}).",
+            status=504,
+        )
     return CoachUnavailable(f"The coach failed: {type(exc).__name__}: {exc}", status=502)
 
 
@@ -247,15 +263,36 @@ async def run_tool(db, user_id: str, name: str, args: dict) -> dict:
 
 MAX_TOOL_ROUNDS = 5
 
+_CLIENT = None
+
+
+def _client():
+    """One client for the process.
+
+    Built per call, every turn paid for a fresh TLS handshake. The explicit
+    timeout matters more: the SDK's default allows 5 seconds to connect, and the
+    free instance runs the analysis loop in this same process, so a blocked event
+    loop can burn that before the socket opens.
+    """
+    global _CLIENT
+    if _CLIENT is None:
+        import httpx
+        from openai import AsyncOpenAI
+
+        _CLIENT = AsyncOpenAI(
+            api_key=settings.openai_key,
+            timeout=httpx.Timeout(60.0, connect=15.0),
+            max_retries=3,
+        )
+    return _CLIENT
+
 
 async def ask(db, user_id: str, history: list[dict], user_message: str) -> tuple[str, list[str]]:
     """Run one coach turn. Returns (reply_text, tool_names_used)."""
     if not settings.coach_configured:
         raise CoachUnavailable("OPENAI_API_KEY is not set on the API.")
 
-    from openai import AsyncOpenAI
-
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    client = _client()
     messages: list[dict[str, Any]] = [
         {"role": "system", "content": SYSTEM_PROMPT},
         *history,

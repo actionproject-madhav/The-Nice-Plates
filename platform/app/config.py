@@ -79,8 +79,20 @@ class Settings(BaseSettings):
         return bool(self.r2_account_id and self.r2_access_key_id and self.r2_secret_access_key)
 
     @property
+    def openai_key(self) -> str:
+        """The key as the SDK must receive it.
+
+        A key pasted into a dashboard field arrives with a trailing newline or
+        wrapped in quotes often enough that it is worth stripping here. httpx
+        rejects such a value as an illegal header, and the OpenAI SDK reports
+        that as APIConnectionError, which reads exactly like a dead network and
+        is not one.
+        """
+        return self.openai_api_key.strip().strip('"').strip("'")
+
+    @property
     def coach_configured(self) -> bool:
-        return bool(self.openai_api_key)
+        return bool(self.openai_key)
 
     @property
     def google_configured(self) -> bool:
