@@ -135,6 +135,10 @@ a {
 }
 
 .navlink {
+  /* Also applied to a <button> (sign out), which needs the reset. */
+  border: none;
+  background: transparent;
+  cursor: pointer;
   padding: 6px 12px;
   border-radius: 999px;
   font-size: var(--text-small);

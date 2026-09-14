@@ -6,7 +6,7 @@
  * legend — the silhouette carries the whole story, which is the point.
  */
 
-import { fillDays, minutes as fmtMinutes } from "../lib/format";
+import { fillDays } from "../lib/format";
 import type { DaySummary } from "../lib/api";
 
 export function Ledger({ days, span = 30 }: { days: DaySummary[]; span?: number }) {
@@ -30,7 +30,6 @@ export function Ledger({ days, span = 30 }: { days: DaySummary[]; span?: number 
       </div>
       <figcaption className="ledger-scale">
         <span>{span} days ago</span>
-        <span className="mono">{fmtMinutes(peak)} min peak</span>
         <span>today</span>
       </figcaption>
     </figure>

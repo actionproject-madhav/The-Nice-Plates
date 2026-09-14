@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type Progress, type Session, type Piece } from "../lib/api";
 import { Ledger } from "../components/Ledger";
-import { minutes, relativeDay } from "../lib/format";
+import { duration, relativeDay } from "../lib/format";
 import { useAuth } from "../lib/auth";
 
 export function Dashboard() {
@@ -37,7 +37,7 @@ export function Dashboard() {
       <p className="eyebrow">{user?.name ?? "Practice log"}</p>
       <h1 className="display title" style={{ marginBottom: 32 }}>
         {played
-          ? `${minutes(progress.total_minutes)} minutes on the bench`
+          ? `${duration(progress.total_minutes)} on the bench`
           : "Nothing logged yet"}
       </h1>
 

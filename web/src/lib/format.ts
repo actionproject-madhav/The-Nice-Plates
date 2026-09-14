@@ -1,10 +1,10 @@
 /** Small formatters. Shared so "25 min" never renders three different ways. */
 
-export function minutes(total: number): string {
-  if (total < 60) return `${total}`;
+export function duration(total: number): string {
+  if (total < 60) return `${total} min`;
   const h = Math.floor(total / 60);
   const m = total % 60;
-  return m ? `${h}h ${m}` : `${h}h`;
+  return m ? `${h}h ${m}m` : `${h}h`;
 }
 
 export function clock(seconds: number): string {
