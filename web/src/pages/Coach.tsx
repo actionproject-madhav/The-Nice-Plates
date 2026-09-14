@@ -12,8 +12,8 @@ interface Turn {
 }
 
 const OPENERS = [
-  "How consistent have I been this month?",
-  "What should I work on next?",
+  "How consistent have I been?",
+  "What should I work on?",
   "Where am I losing time?",
 ];
 
@@ -63,12 +63,11 @@ export function Coach() {
   return (
     <div className="reveal">
       <p className="eyebrow">Coach</p>
-      <h1 className="display title" style={{ marginBottom: 28 }}>
-        {turns.length ? " " : "Ask about your own playing."}
-      </h1>
-
       {turns.length === 0 && (
         <>
+          <h1 className="display title" style={{ marginBottom: 28 }}>
+            Ask about your own playing.
+          </h1>
           <div className="prompts">
             {OPENERS.map((opener) => (
               <button

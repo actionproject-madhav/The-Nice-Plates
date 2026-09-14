@@ -61,7 +61,7 @@ export function Dashboard() {
         <>
           <div className="ledger-row">
             <Ledger days={progress.recent_days} span={30} />
-            <Sparkline values={progress.pitch_accuracy_trend} label="Pitch, last takes" />
+            <Sparkline values={progress.pitch_accuracy_trend} label="Pitch" />
           </div>
 
           <dl className="readout" style={{ marginTop: 40 }}>

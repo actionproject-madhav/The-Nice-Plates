@@ -114,7 +114,7 @@ export function Practice() {
       setPhase("error");
       setMessage(
         e instanceof DOMException
-          ? "We need microphone access to record. Allow it and try again."
+          ? "Allow microphone access to record."
           : e instanceof Error
             ? e.message
             : "Couldn't start recording.",
@@ -166,12 +166,12 @@ export function Practice() {
       }
       if (status.status === "failed") {
         setPhase("error");
-        setMessage(status.error ?? "We couldn't analyse that recording.");
+        setMessage(status.error ?? "Couldn’t analyse that take.");
         return;
       }
     }
     setPhase("error");
-    setMessage("This is taking longer than expected. Check back on this recording shortly.");
+    setMessage("Still working on it. Check back shortly.");
   }
 
   async function finish() {
@@ -179,7 +179,7 @@ export function Practice() {
     await api.endSession(sessionId, sessionSeconds.current);
     setSessionId(null);
     sessionSeconds.current = 0;
-    setMessage("Session saved to your log.");
+    setMessage("Saved to your log.");
   }
 
   const section = piece?.sections.find((s) => s.id === sectionId);
@@ -203,7 +203,7 @@ export function Practice() {
 
       {phase === "recording" && (
         <p className="small muted" style={{ marginTop: 10 }}>
-          {kind === "voice_note" ? "Say what you worked on" : "Playing"}
+          {kind === "voice_note" ? "Speaking" : "Playing"}
         </p>
       )}
 
@@ -265,7 +265,7 @@ export function Practice() {
           {transcript ? (
             <blockquote className="said">{transcript}</blockquote>
           ) : (
-            <p className="notice">The take is saved, but nothing came back from transcription.</p>
+            <p className="notice">Saved. Nothing came back from transcription.</p>
           )}
           {playback && <audio className="player" controls src={playback} />}
         </div>
@@ -351,9 +351,6 @@ function Verdict({
 
       {playback && <audio className="player" controls src={playback} />}
 
-      <p className="small muted mono" style={{ marginTop: 24 }}>
-        {feedback.engine} engine
-      </p>
     </div>
   );
 }
