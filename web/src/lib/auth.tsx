@@ -20,6 +20,10 @@ import { api, getToken, setToken, type User } from "./api";
 interface AuthState {
   user: User | null;
   loading: boolean;
+  /** Seconds spent waiting on the first request. Free Render instances sleep
+   *  after 15 minutes idle and take ~50s to wake, which otherwise reads as a
+   *  hung page. */
+  waiting: number;
   error: string | null;
   signInWithGoogle: (credential: string) => Promise<void>;
   signInAsDev: () => Promise<void>;
@@ -31,6 +35,7 @@ const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [waiting, setWaiting] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   // Sign-in is switched off for now: the app enters directly. Restore the gate
@@ -59,11 +64,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const started = Date.now();
+    const tick = window.setInterval(() => {
+      if (!cancelled) setWaiting(Math.round((Date.now() - started) / 1000));
+    }, 1000);
+
     void enter().finally(() => {
+      window.clearInterval(tick);
       if (!cancelled) setLoading(false);
     });
     return () => {
       cancelled = true;
+      window.clearInterval(tick);
     };
   }, []);
 
@@ -103,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, error, signInWithGoogle, signInAsDev, signOut }}
+      value={{ user, loading, waiting, error, signInWithGoogle, signInAsDev, signOut }}
     >
       {children}
     </AuthContext.Provider>
