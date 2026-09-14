@@ -3,6 +3,15 @@
 import { useEffect, useState } from "react";
 import { GoogleButton, useAuth } from "../lib/auth";
 import { api, type ReadyCheck } from "../lib/api";
+import { ChunkDiagram, TakeDiagram, CoachDiagram } from "../components/Notation";
+
+/** The product in three moves. Each one is a drawing; the words are a caption
+ *  on it, not a substitute for it. */
+const STEPS = [
+  { n: "01", label: "Chunk it", figure: <ChunkDiagram /> },
+  { n: "02", label: "Record it", figure: <TakeDiagram /> },
+  { n: "03", label: "Ask about it", figure: <CoachDiagram /> },
+];
 
 export function SignIn() {
   const { error, signInAsDev } = useAuth();
@@ -31,12 +40,10 @@ export function SignIn() {
       </h1>
 
       <p className="lede" style={{ marginTop: 28 }}>
-        Record a take, and get back the bars you rushed, the notes you missed, and the tempo you
-        actually held — not the one you meant to. Every session lands in a log you can read at a
-        glance.
+        Record a take. Get back the bars you rushed and the tempo you actually held.
       </p>
 
-      <div style={{ marginTop: 40, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
+      <div style={{ marginTop: 36, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
         <GoogleButton />
         {import.meta.env.DEV && (
           <button type="button" className="btn btn-quiet btn-sm" onClick={() => void signInAsDev()}>
@@ -58,25 +65,20 @@ export function SignIn() {
         </p>
       )}
 
-      <hr className="rule" />
-
-      <div className="row" style={{ gap: 48 }}>
-        <Column
-          kicker="Chunk it"
-          body="Split a score into bars you can actually drill, and work one at a time instead of running the whole thing badly."
-        />
-        <Column
-          kicker="Record it"
-          body="A take goes straight to storage and comes back with pitch, timing, and a list of the bars that need another pass."
-        />
-        <Column
-          kicker="Ask about it"
-          body="The coach reads your own history before it answers, so it can point at a specific week and a specific bar."
-        />
+      <div className="strip">
+        {STEPS.map((step) => (
+          <figure key={step.n}>
+            {step.figure}
+            <figcaption>
+              <b>{step.n}</b>
+              {step.label}
+            </figcaption>
+          </figure>
+        ))}
       </div>
 
       {ready && ready.status !== "ok" && (
-        <p className="small muted" style={{ marginTop: 48 }}>
+        <p className="small muted" style={{ marginTop: 40 }}>
           API status: <span className="mono">{ready.status}</span> —{" "}
           {Object.entries(ready.checks)
             .filter(([, c]) => !c.ok)
@@ -85,17 +87,6 @@ export function SignIn() {
           not configured.
         </p>
       )}
-    </div>
-  );
-}
-
-function Column({ kicker, body }: { kicker: string; body: string }) {
-  return (
-    <div style={{ flex: "1 1 220px" }}>
-      <p className="eyebrow">{kicker}</p>
-      <p className="small muted" style={{ margin: 0, maxWidth: "34ch" }}>
-        {body}
-      </p>
     </div>
   );
 }

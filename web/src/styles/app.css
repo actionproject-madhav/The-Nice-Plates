@@ -589,3 +589,123 @@ a.entry:hover {
     gap: 6px;
   }
 }
+
+/* ── Notation ─────────────────────────────────────────────────────────── */
+
+/* Every drawing is 200×96 with the staff at the same y, so panels laid side
+   by side line up and read as one continuous score. */
+.notation {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+}
+.n-staff line {
+  stroke: currentColor;
+  stroke-width: 0.7;
+  opacity: 0.32;
+}
+.n-staff.n-faint line {
+  opacity: 0.16;
+}
+.n-bar line {
+  stroke: currentColor;
+  stroke-width: 0.7;
+  opacity: 0.42;
+}
+.n-bar .n-bar-thick {
+  stroke-width: 2;
+  opacity: 0.8;
+}
+.n-head {
+  fill: currentColor;
+}
+.n-stem {
+  stroke: currentColor;
+  stroke-width: 0.9;
+}
+.n-beam {
+  fill: currentColor;
+}
+.n-dim {
+  opacity: 0.3;
+}
+.n-span {
+  fill: var(--stone);
+  opacity: 0.8;
+}
+.n-brace {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.8;
+  opacity: 0.45;
+}
+.n-wave line {
+  stroke: currentColor;
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  opacity: 0.7;
+}
+/* Vermillion is data, never decoration: these are bars that need work. */
+.n-flag .n-head {
+  fill: var(--vermillion);
+}
+.n-flag .n-stem {
+  stroke: var(--vermillion);
+}
+.n-ring {
+  fill: none;
+  stroke: var(--vermillion);
+  stroke-width: 0.8;
+  opacity: 0.55;
+}
+.n-cell {
+  fill: var(--border);
+}
+.n-cell-bad {
+  fill: var(--vermillion);
+}
+
+/* ── The sequence strip (landing) ─────────────────────────────────────── */
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  margin-top: clamp(44px, 7vw, 76px);
+}
+.strip figure {
+  margin: 0;
+  padding: 30px 0 24px;
+}
+.strip figure + figure {
+  border-left: 1px solid var(--hairline);
+}
+.strip figcaption {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 0 clamp(14px, 2.4vw, 24px);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--charcoal);
+}
+.strip figcaption b {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--soft);
+}
+
+@media (max-width: 720px) {
+  .strip {
+    grid-template-columns: 1fr;
+  }
+  .strip figure + figure {
+    border-left: none;
+    border-top: 1px solid var(--hairline);
+  }
+}
