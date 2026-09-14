@@ -32,6 +32,9 @@ export function Dashboard() {
   if (!progress) return <p className="muted">Loading…</p>;
 
   const played = progress.total_sessions > 0;
+  // The page had one button and it only appeared before the first session, so
+  // the log went read-only the moment it had anything to show.
+  const resumeId = sessions.find((s) => s.piece_id)?.piece_id ?? pieces[0]?.id ?? null;
 
   return (
     <div className="reveal">
@@ -41,6 +44,23 @@ export function Dashboard() {
           ? `${duration(progress.total_minutes)} on the bench`
           : "Nothing logged yet"}
       </h1>
+
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 40 }}>
+        {resumeId ? (
+          <>
+            <Link to={`/practice/${resumeId}`} className="btn btn-primary">
+              Start a session
+            </Link>
+            <Link to="/library" className="btn btn-quiet">
+              Pick a piece
+            </Link>
+          </>
+        ) : (
+          <Link to="/library" className="btn btn-primary">
+            Add your first piece
+          </Link>
+        )}
+      </div>
 
       {played ? (
         <>
@@ -56,13 +76,7 @@ export function Dashboard() {
             <Stat label="Pieces" value={progress.pieces_practiced} />
           </dl>
         </>
-      ) : (
-        <div className="empty">
-          <Link to="/library" className="btn btn-primary">
-            Add your first piece
-          </Link>
-        </div>
-      )}
+      ) : null}
 
       {sessions.length > 0 && (
         <>
