@@ -1,0 +1,12 @@
+# Worker service. Deliberately does NOT pin basic-pitch / librosa by default —
+# TensorFlow pulls ~500MB and blows past Render's free build. Install the real
+# engine locally or on a paid instance with:
+#     pip install -r requirements-ml.txt
+motor==3.6.0
+pymongo==4.9.2
+pydantic==2.10.4
+pydantic-settings==2.7.0
+redis==5.2.1
+boto3==1.35.92
+numpy==2.2.1
+-e ../data

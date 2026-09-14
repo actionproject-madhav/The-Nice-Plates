@@ -1,0 +1,19 @@
+# API service. Pinned to minor versions so a teammate's `pip install` today
+# matches Render's build next month.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+motor==3.6.0
+pymongo==4.9.2
+python-jose[cryptography]==3.3.0
+google-auth==2.37.0
+requests==2.32.3
+redis==5.2.1
+boto3==1.35.92
+python-multipart==0.0.20
+httpx==0.28.1
+openai==1.59.6
+
+# Shared domain layer. Installed from the repo, not PyPI.
+-e ./data

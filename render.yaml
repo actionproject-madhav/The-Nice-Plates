@@ -1,0 +1,53 @@
+# Render blueprint. New > Blueprint > pick this repo, and Render creates the
+# API and the queue from this file. Secrets are marked sync:false, so Render
+# prompts for them instead of reading them from git.
+services:
+  - type: web
+    name: nice-plates-api
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r platform/requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir platform
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: ENV
+        value: production
+      # Free Render has no worker service type, so the API hosts the analysis
+      # loop. Flip to false once the worker gets its own paid service.
+      - key: EMBEDDED_WORKER
+        value: "true"
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: nice-plates-queue
+          property: connectionString
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: nice_plates
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        value: nice-plates
+      - key: CORS_ORIGINS
+        sync: false
+
+  - type: keyvalue
+    name: nice-plates-queue
+    plan: free
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: noeviction

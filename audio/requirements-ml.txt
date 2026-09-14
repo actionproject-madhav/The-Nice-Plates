@@ -1,0 +1,6 @@
+# The real analysis engine. Heavy. Install on a machine with room.
+-r requirements.txt
+basic-pitch==0.4.0
+librosa==0.10.2.post1
+soundfile==0.12.1
+scipy==1.15.0

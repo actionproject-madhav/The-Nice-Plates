@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env & secrets — never commit a filled-in .env
+.env
+.env.local
+.env.*.local
+
+# Local storage fallback
+.localstorage/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

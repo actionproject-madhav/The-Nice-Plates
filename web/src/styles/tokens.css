@@ -1,0 +1,95 @@
+/* House tokens, Parchment palette.
+   One accent does work per view: forest is the primary action and "on track".
+   Vermillion is never decorative — it appears only where data says a bar needs
+   work. Everything else is ink on paper with hairlines. */
+
+:root {
+  color-scheme: light;
+
+  /* Neutrals */
+  --canvas: #f5f0e8;
+  --surface: #fffef9;
+  --ink: #1a1a1a;
+  --charcoal: #47423d;
+  --muted: #736f6c;
+  --soft: #94918e;
+  --border: #e2ddd2;
+  --hairline: rgba(0, 0, 0, 0.07);
+
+  /* Accent — Parchment */
+  --forest: #034f46;
+  --forest-soft: #e4ede9;
+  --stone: #e4e4d0;
+  --sunburst: #ffa946;
+  --vermillion: #d64e2e;
+
+  /* Type */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+  --text-hero: clamp(2.75rem, 7vw, 5rem);
+  --text-title: clamp(1.5rem, 3vw, 2.125rem);
+  --text-section: 1.125rem;
+  --text-body: 0.9375rem;
+  --text-small: 0.8125rem;
+  --text-micro: 0.6875rem;
+
+  --track-display: -0.03em;
+  --track-micro: 0.14em;
+  --leading-display: 1.02;
+  --leading-body: 1.55;
+
+  /* Structure */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --gutter: clamp(20px, 5vw, 40px);
+  --measure: 56ch;
+  --shell-max: 1180px;
+
+  --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-overlay: 0 12px 40px rgba(0, 0, 0, 0.12);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  /* Overridden below by the media query; this block only exists so an explicit
+     data-theme="dark" wins in both directions. */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --canvas: #000000;
+    --surface: #0b0b0b;
+    --ink: #f2f0ec;
+    --charcoal: #cfcac3;
+    --muted: #8a8a8a;
+    --soft: #6b6b6b;
+    --border: #1c1c1c;
+    --hairline: rgba(255, 255, 255, 0.08);
+    --forest: #5fbfa8;
+    --forest-soft: #0e211d;
+    --stone: #24241f;
+    --vermillion: #ef7351;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --canvas: #000000;
+  --surface: #0b0b0b;
+  --ink: #f2f0ec;
+  --charcoal: #cfcac3;
+  --muted: #8a8a8a;
+  --soft: #6b6b6b;
+  --border: #1c1c1c;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --forest: #5fbfa8;
+  --forest-soft: #0e211d;
+  --stone: #24241f;
+  --vermillion: #ef7351;
+}

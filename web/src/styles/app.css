@@ -1,0 +1,587 @@
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* ── Type ─────────────────────────────────────────────────────────────── */
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--track-display);
+  line-height: var(--leading-display);
+  text-wrap: balance;
+  margin: 0;
+}
+
+.hero {
+  font-size: var(--text-hero);
+}
+.title {
+  font-size: var(--text-title);
+}
+.section-title {
+  font-size: var(--text-section);
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* The house kicker. Every major heading gets one. */
+.eyebrow {
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--soft);
+  margin: 0 0 10px;
+}
+
+.lede {
+  max-width: var(--measure);
+  color: var(--charcoal);
+  font-size: 1rem;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: var(--text-small);
+}
+
+/* ── Shell ────────────────────────────────────────────────────────────── */
+
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.masthead {
+  border-bottom: 1px solid var(--hairline);
+  background: var(--canvas);
+}
+
+.masthead-inner {
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  padding: 18px var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.masthead nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.navlink {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: var(--text-small);
+  color: var(--muted);
+  transition: color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.navlink:hover,
+.navlink:focus-visible {
+  color: var(--ink);
+  background: var(--hairline);
+}
+.navlink[aria-current="page"] {
+  color: var(--ink);
+  background: var(--hairline);
+}
+
+main {
+  flex: 1;
+  max-width: var(--shell-max);
+  width: 100%;
+  margin: 0 auto;
+  padding: clamp(36px, 6vw, 64px) var(--gutter) 96px;
+}
+
+.colophon {
+  border-top: 1px solid var(--hairline);
+  padding: 20px var(--gutter);
+  font-size: var(--text-micro);
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--soft);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: var(--shell-max);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Controls ─────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-small);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease),
+    border-color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.btn:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--canvas);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* The one accent fill. At most one of these is visible per view. */
+.btn-primary {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: #fffef9;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--canvas);
+}
+
+.btn-quiet {
+  border-color: var(--border);
+  color: var(--muted);
+}
+.btn-quiet:hover:not(:disabled) {
+  border-color: var(--ink);
+  background: transparent;
+  color: var(--ink);
+}
+
+.btn-sm {
+  padding: 5px 12px;
+  font-size: var(--text-micro);
+  letter-spacing: 0.02em;
+}
+
+.field {
+  display: block;
+  margin-bottom: 18px;
+}
+.field label {
+  display: block;
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--soft);
+  margin-bottom: 7px;
+}
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  border-radius: 0;
+  transition: border-color 0.2s var(--ease);
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-bottom-color: var(--forest);
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--soft);
+}
+
+.row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.row > * {
+  flex: 1 1 180px;
+}
+
+/* ── Surfaces ─────────────────────────────────────────────────────────── */
+
+.rule {
+  border: none;
+  border-top: 1px solid var(--hairline);
+  margin: 40px 0;
+}
+
+.panel {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: clamp(20px, 3vw, 30px);
+  background: var(--surface);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+}
+.stack > * + * {
+  border-top: 1px solid var(--hairline);
+}
+
+.entry {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 15px 0;
+  transition: padding-left 0.35s var(--ease);
+}
+a.entry:hover {
+  padding-left: 8px;
+}
+.entry-title {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  letter-spacing: -0.015em;
+  flex: 1;
+  min-width: 0;
+}
+.entry-meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: 56px 0;
+  text-align: center;
+  color: var(--muted);
+  max-width: 44ch;
+  margin: 0 auto;
+}
+
+/* ── Figures ──────────────────────────────────────────────────────────── */
+
+/* The signature element: one hairline rule per practice day, height = minutes.
+   No axes, no gridlines, no legend — the shape is the whole point. */
+.ledger {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 84px;
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 1px;
+}
+.ledger-day {
+  flex: 1;
+  min-width: 2px;
+  background: var(--ink);
+  border-radius: 1px 1px 0 0;
+  transition: background 0.2s var(--ease);
+}
+.ledger-day[data-empty="true"] {
+  background: var(--border);
+  height: 2px !important;
+}
+.ledger-day[data-today="true"] {
+  background: var(--forest);
+}
+.ledger-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--soft);
+}
+
+.readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 1px;
+  background: var(--hairline);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.readout > div {
+  background: var(--canvas);
+  padding: 18px 20px;
+}
+.readout dt {
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--soft);
+  margin: 0 0 6px;
+}
+.readout dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.readout dd span {
+  font-size: 0.8125rem;
+  color: var(--muted);
+  margin-left: 3px;
+}
+
+/* A horizontal accuracy bar. Reads left-to-right like a fill gauge. */
+.gauge {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.gauge span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transition: width 0.6s var(--ease);
+}
+
+.bars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+.bar-chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--vermillion);
+  color: var(--vermillion);
+}
+
+/* ── Practice ─────────────────────────────────────────────────────────── */
+
+.clock {
+  font-family: var(--font-mono);
+  font-size: clamp(3rem, 11vw, 5.5rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.pulse {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--vermillion);
+  margin-right: 9px;
+  vertical-align: middle;
+  animation: pulse 1.8s var(--ease) infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.section-chip {
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+.section-chip:hover {
+  border-color: var(--ink);
+}
+.section-chip[aria-pressed="true"] {
+  border-color: var(--forest);
+  color: var(--forest);
+}
+
+/* ── Coach ────────────────────────────────────────────────────────────── */
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  margin-bottom: 32px;
+}
+.turn-role {
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: var(--track-micro);
+  text-transform: uppercase;
+  color: var(--soft);
+  margin-bottom: 8px;
+}
+.turn-body {
+  max-width: var(--measure);
+  white-space: pre-wrap;
+}
+.turn[data-role="assistant"] .turn-body {
+  border-left: 1.5px solid var(--forest);
+  padding-left: 18px;
+}
+.tool-trace {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  color: var(--soft);
+  margin-top: 10px;
+}
+
+.composer {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  border-top: 1px solid var(--hairline);
+  padding-top: 18px;
+}
+.composer textarea {
+  flex: 1;
+  border: none;
+  background: transparent;
+  resize: none;
+  padding: 8px 0;
+  min-height: 44px;
+  max-height: 180px;
+}
+.composer textarea:focus {
+  outline: none;
+}
+
+.prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+
+/* ── Notices ──────────────────────────────────────────────────────────── */
+
+.notice {
+  border-left: 2px solid var(--sunburst);
+  padding: 2px 0 2px 16px;
+  color: var(--charcoal);
+  font-size: var(--text-small);
+  max-width: var(--measure);
+}
+.notice[data-tone="bad"] {
+  border-left-color: var(--vermillion);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: reveal 0.7s var(--ease) forwards;
+}
+@keyframes reveal {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .masthead-inner {
+    gap: 14px;
+  }
+  .entry {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
