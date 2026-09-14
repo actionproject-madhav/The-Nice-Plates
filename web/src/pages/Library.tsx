@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api, type Piece } from "../lib/api";
 import { Icon } from "../components/Icon";
+import { BlankStave } from "../components/Notation";
 import { relativeDay } from "../lib/format";
 import { friendly } from "../lib/errors";
 
@@ -84,8 +85,9 @@ export function Library() {
       <hr className="rule" />
 
       {pieces.length === 0 ? (
-        <div className="empty">
-          <p>Nothing here yet.</p>
+        <div className="blank">
+          <BlankStave />
+          <p className="eyebrow">Nothing here yet</p>
         </div>
       ) : (
         <div className="stack">

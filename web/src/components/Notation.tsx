@@ -68,9 +68,17 @@ function Beam({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: numb
   );
 }
 
-function Figure({ label, children }: { label: string; children: React.ReactNode }) {
+function Figure({
+  label,
+  box = "0 0 200 96",
+  children,
+}: {
+  label: string;
+  box?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <svg className="notation" viewBox="0 0 200 96" role="img" aria-label={label}>
+    <svg className="notation" viewBox={box} role="img" aria-label={label}>
       {children}
     </svg>
   );
@@ -355,5 +363,18 @@ export function HeroScore() {
         );
       })}
     </svg>
+  );
+}
+
+/* ── A blank stave ─────────────────────────────────────────────────────────
+   For a library with nothing in it. Ruled and barred and waiting, which is
+   what an empty repertoire actually is.                                     */
+
+export function BlankStave() {
+  return (
+    <Figure label="An empty stave." box="0 24 200 40">
+      <Staff />
+      <BarLines />
+    </Figure>
   );
 }

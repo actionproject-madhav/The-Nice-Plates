@@ -5,6 +5,7 @@ import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { api } from "../lib/api";
 import { Icon } from "../components/Icon";
 import { friendly } from "../lib/errors";
+import { CoachDiagram } from "../components/Notation";
 
 interface Turn {
   role: "user" | "assistant";
@@ -80,6 +81,9 @@ export function Coach() {
                 {opener}
               </button>
             ))}
+          </div>
+          <div className="coach-figure">
+            <CoachDiagram />
           </div>
         </>
       )}

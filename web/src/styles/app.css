@@ -261,7 +261,10 @@ main {
   display: block;
   margin-bottom: 18px;
 }
-.field label {
+/* The markup is <label class="field"><span>…</span><input></label>, so the
+   micro-label rule has to reach the span, not a nested label. */
+.field label,
+.field > span {
   display: block;
   font-size: var(--text-micro);
   font-weight: 600;
@@ -354,6 +357,27 @@ a.entry:hover {
   color: var(--muted);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+
+/* An empty state that is a drawing, with the words as its caption. */
+.blank {
+  max-width: 560px;
+  margin: 40px auto 0;
+  text-align: center;
+  opacity: 0.85;
+}
+.blank .eyebrow {
+  margin: 18px 0 0;
+}
+
+.coach-figure {
+  max-width: 420px;
+  margin-top: clamp(40px, 7vw, 72px);
+  opacity: 0.9;
+}
+
+.sec-strip[data-preview] .sec-cell {
+  cursor: default;
 }
 
 .empty {

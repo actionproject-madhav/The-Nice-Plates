@@ -12,7 +12,7 @@
  */
 
 import { useRef, useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   api,
   putToStorage,
@@ -269,6 +269,15 @@ export function Practice() {
           )}
           {playback && <audio className="player" controls src={playback} />}
         </div>
+      )}
+
+      {piece && piece.sections.length === 0 && phase !== "recording" && (
+        <>
+          <hr className="rule" />
+          <Link to={`/piece/${pieceId}`} className="btn btn-quiet btn-sm">
+            Split into sections
+          </Link>
+        </>
       )}
 
       {piece && piece.sections.length > 0 && phase !== "recording" && (

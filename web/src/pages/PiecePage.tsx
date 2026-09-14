@@ -6,6 +6,7 @@ import { api, type PieceDetail } from "../lib/api";
 import { Icon } from "../components/Icon";
 import { SectionStrip } from "../components/SectionStrip";
 import { friendly } from "../lib/errors";
+import { SplitPreview } from "../components/SplitPreview";
 
 export function PiecePage() {
   const { pieceId = "" } = useParams();
@@ -66,7 +67,8 @@ export function PiecePage() {
       <p className="eyebrow">Sections</p>
       {piece.sections.length === 0 ? (
         <>
-          <div className="row" style={{ maxWidth: 440 }}>
+          <SplitPreview totalBars={totalBars} perSection={perSection} />
+          <div className="row" style={{ maxWidth: 440, marginTop: 30 }}>
             <label className="field">
               <span>Bars in the piece</span>
               <input
@@ -89,7 +91,7 @@ export function PiecePage() {
             </label>
           </div>
           <button type="button" className="btn btn-primary" onClick={() => void chunk()} disabled={busy}>
-            {busy ? "Splitting…" : `Split into ${Math.ceil(totalBars / perSection)} sections`}
+            {busy ? "Splitting…" : "Split"}
           </button>
         </>
       ) : (
