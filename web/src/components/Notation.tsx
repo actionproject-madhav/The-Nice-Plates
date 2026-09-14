@@ -244,7 +244,7 @@ export function HeroScore() {
   return (
     <svg
       className="notation hero-score"
-      viewBox="0 0 640 150"
+      viewBox="0 20 640 112"
       preserveAspectRatio="xMinYMid slice"
       role="img"
       aria-label="A recorded take drawn as a waveform, resolving into a written phrase of six bars."

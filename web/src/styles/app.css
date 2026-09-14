@@ -281,6 +281,13 @@ main {
   color: var(--soft);
 }
 
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: clamp(26px, 4vw, 40px);
+}
+
 .row {
   display: flex;
   gap: 20px;
@@ -968,11 +975,11 @@ button.score-strip-bar:hover {
   margin-top: clamp(16px, 3vw, 30px);
   /* Paired with preserveAspectRatio="xMinYMid slice": narrow screens crop to
      the opening bars instead of shrinking six of them into a smear. */
-  aspect-ratio: 640 / 150;
+  aspect-ratio: 640 / 112;
 }
 @media (max-width: 680px) {
   .hero-score {
-    aspect-ratio: 300 / 150;
+    aspect-ratio: 300 / 112;
   }
 }
 .hero-score .n-staff line {

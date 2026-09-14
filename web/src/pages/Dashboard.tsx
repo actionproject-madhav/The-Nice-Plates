@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { api, type Progress, type Session, type Piece } from "../lib/api";
 import { Ledger } from "../components/Ledger";
 import { Sparkline } from "../components/Sparkline";
+import { Overture } from "../components/Overture";
 import { duration, relativeDay } from "../lib/format";
 import { useAuth } from "../lib/auth";
 
@@ -42,25 +43,19 @@ export function Dashboard() {
       <h1 className="display title" style={{ marginBottom: 32 }}>
         {played
           ? `${duration(progress.total_minutes)} on the bench`
-          : "Nothing logged yet"}
+          : "Nothing on the ledger yet."}
       </h1>
 
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 40 }}>
-        {resumeId ? (
-          <>
-            <Link to={`/practice/${resumeId}`} className="btn btn-primary">
-              Start a session
-            </Link>
-            <Link to="/library" className="btn btn-quiet">
-              Pick a piece
-            </Link>
-          </>
-        ) : (
-          <Link to="/library" className="btn btn-primary">
-            Add your first piece
+      {resumeId && (
+        <div className="actions" style={{ marginBottom: 40 }}>
+          <Link to={`/practice/${resumeId}`} className="btn btn-primary">
+            Start a session
           </Link>
-        )}
-      </div>
+          <Link to="/library" className="btn btn-quiet">
+            Pick a piece
+          </Link>
+        </div>
+      )}
 
       {played ? (
         <>
@@ -76,7 +71,17 @@ export function Dashboard() {
             <Stat label="Pieces" value={progress.pieces_practiced} />
           </dl>
         </>
-      ) : null}
+      ) : (
+        <Overture
+          action={
+            resumeId ? null : (
+              <Link to="/library" className="btn btn-primary">
+                Add your first piece
+              </Link>
+            )
+          }
+        />
+      )}
 
       {sessions.length > 0 && (
         <>
