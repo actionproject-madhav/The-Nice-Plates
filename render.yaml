@@ -13,8 +13,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
+      # "development" keeps the no-Google dev-login open, so the prototype
+      # runs with no keys at all. Set to production once Google sign-in is on.
       - key: ENV
-        value: production
+        value: development
       # Free Render has no worker service type, so the API hosts the analysis
       # loop. Flip to false once the worker gets its own paid service.
       - key: EMBEDDED_WORKER
